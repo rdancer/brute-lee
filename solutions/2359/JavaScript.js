@@ -1,4 +1,8 @@
-/* JavaScript solution of LeetCode 2359. Find Closest Node to Given Two Nodes; Copyright 2023 Brute Lee */
+/*
+ * language: JavaScript
+ * problem: 2359. Find Closest Node to Given Two Nodes
+ * author: Brute Lee <https://github.com/rdancer/brute-lee>
+ */
 testNumber = 0;
 /**
  * @param {number[]} edges
