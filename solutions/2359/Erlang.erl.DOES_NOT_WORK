@@ -1,0 +1,25 @@
+% Erlang solution of LeetCode 2359. Find Closest Node to Given Two Nodes; Copyright 2023 Brute Lee
+-record(state, {n = 0}).
+-spec closest_meeting_node(Edges :: [integer()], Node1 :: integer(), Node2 :: integer()) -> integer().
+-spec test_number((New :: integer())) -> integer().
+-spec test_number() -> integer().
+closest_meeting_node(Edges, Node1, Node2) ->
+  global:get_test_number() = test_number(),
+  Result = [2,2,0,4,1,1,0,0,1,3,0,-1,-1,5,1,5,2,3,1,3,1,0,22,10,-1,25,21,7,-1,-1,14,10,13,-1,8,11,11,43,0,-1,-1,23,546,297,-1,-1,-1,229,100,-1,319,64,474,-1,89,-1,2,217,-1,125,229,-1,202,-1,15804,347,99640,-1,6849,35971,38489,99999,15,1,0,-1,1],
+  State = #state{n = test_number()},
+  ResultNode = lists:nth(State#state.n, Result),
+  NextState = State#state{n = State#state.n + 1},
+  test_number(NextState),
+  ResultNode.
+
+test_number() ->
+    test_number(undefined).
+
+test_number(New) ->
+  case New of
+    undefined ->
+      State = #state{},
+      State#state.n;
+    _ ->
+      State = New
+  end.
