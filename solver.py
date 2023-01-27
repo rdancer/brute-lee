@@ -173,6 +173,16 @@ class Solver:
         with open(save_file, 'w') as f:
             f.write(self.solution_text)
 
+        # Maybe remove the itnermediate save file
+        if 'permanently' in kwargs and kwargs['permanently']:
+            # Check if the contents of the premanent save file matches self.solution_text
+            with open(save_file, 'r') as f:
+                if f.read() != self.solution_text:
+                    raise Exception(f"Saving solution failed: contents of the permanent save file {save_file} does not match the solution text")
+            print(f"Saved solution to {save_file}")
+            # remove the intermediate SAVE_FILE
+            os.remove(SAVE_FILE)
+
     def _submit(self):
         """Click the submit button and wait for the result to be displayed."""
         self.solution_text = self.get_solution_text()
@@ -195,7 +205,6 @@ class Solver:
     def _is_accepted(self):
         """Check if the solution was accepted."""
         result = self.page.evaluate(f'''Array.from(document.querySelectorAll("{SOLUTION_ACCEPTED_SELECTOR}")).map(el => el.innerText).some(s => s.trim() === "Solution")''') # the button exists and has the text "Solution"
-        print("Is accepted?", result, type(result), bool(result))
         return bool(result)
 
     def _get_result(self):
