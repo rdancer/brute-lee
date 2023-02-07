@@ -2,18 +2,19 @@ from bs4 import BeautifulSoup
 import pyperclip
 import time
 import os
+from publisher import Publisher
 
 PLATFORM = 'darwin'
 SAVE_FILE = 'solution.txt'
 SOLUTIONS_DIR = 'solutions'
 TEST_PASS_SELECTOR = '.ml-auto.text-xs.text-label-3'
 SOLUTION_NOT_ACCEPTED_SELECTOR = TEST_PASS_SELECTOR
-SOLUTION_ACCEPTED_SELECTOR = "#qd-content > div.h-full.flex-col.ssg__qd-splitter-secondary-w > div > div.min-h-0.flex-grow.ssg__qd-splitter-primary-h > div > div.flex.h-full.w-full.flex-col.overflow-hidden > div.flex.h-full.w-full.flex-col.overflow-auto.p-5 > div.mb-4.flex.w-full.items-start.justify-between > div.flex.items-center.gap-4 > a > button" # "+ Solution" button
+SOLUTION_ACCEPTED_SELECTOR = "#qd-content > div.h-full.flex-col.ssg__qd-splitter-secondary-w div.mb-4.flex.w-full.items-start.justify-between > div.flex.items-center.gap-4 > a > button" # "+ Solution" button -- XXX: this has changed before and will likely change again
 
 class Solver:
-    def __init__(self, browser):
+    def __init__(self, browser, **kwargs):
         self.browser = browser
-        pass
+        self.publish_to_github = kwargs.get('publish_to_github', False)
 
     def _click_over_element(self, selector):
             self.page.wait_for_selector(selector)
@@ -121,7 +122,7 @@ class Solver:
         response = self.page.content()
         soup = BeautifulSoup(response, 'html.parser')
 
-        title_selector = '#qd-content > div.h-full.flex-col.ssg__qd-splitter-primary-w > div > div.min-h-0.flex-grow.ssg__qd-splitter-primary-h > div > div.flex.h-full.w-full.overflow-y-auto > div > div > div.w-full.px-5.pt-4 > div > div:nth-child(1) > div.flex-1 > div > div > span' # ugly, but necessary
+        title_selector = '#qd-content > div.h-full.flex-col.ssg__qd-splitter-primary-w  div.flex-1 > div > div > span' # ugly, but necessary -- XXX unfortunately this has changed at least once, so this might break in the future
         self.page.wait_for_selector(title_selector)
         self.title = self.page.evaluate("document.querySelector('" + title_selector + "').innerText")
         print(f"Solving problem: {self.title}")
@@ -182,6 +183,8 @@ class Solver:
             print(f"Saved solution to {save_file}")
             # remove the intermediate SAVE_FILE
             os.remove(SAVE_FILE)
+            if self.publish_to_github:
+                Publisher().push_to_github(save_file, f"Publish {save_file}\n\n* problem: {self.title}\n* language: {self.language}\n* link: {self.problem_url}")
 
     def _submit(self):
         """Click the submit button and wait for the result to be displayed."""

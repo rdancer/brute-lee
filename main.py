@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('problem_url', nargs='?', default=None, help='The URL of the problem to solve (optional)')
 # headless = False by default
 parser.add_argument('--headless', action='store_true', help='Run the browser in headless mode')
+parser.add_argument('--publish-to-github', action='store_true', help='Automatically publish the solution to GitHub')
 args = parser.parse_args()
 
 print("args problem_url: " + str(args.problem_url))
@@ -64,7 +65,7 @@ else:
 
 print("Solving problem: " + problem_url)
 # Solve the problem
-solver = Solver(browser)
+solver = Solver(browser, publish_to_github=True if args.publish_to_github else False)
 solver.solve(page, problem_url)
 
 # Wait 5 seconds
