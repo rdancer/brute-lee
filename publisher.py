@@ -5,7 +5,8 @@ class Publisher:
     def __init__(self, repo="./"): # XXX
         self.repo = git.Repo(repo)
     
-    def push_to_github(self, file_or_file_list, commit_message):
+    def push_to_github(self, file_or_file_list, commit_message, **kwargs):
+        author = kwargs.get("author", None)
         # the file_or_file_list can be a string or a list of strings
         if isinstance(file_or_file_list, str):
             file_list = [file_or_file_list]
@@ -20,6 +21,8 @@ class Publisher:
             # Commit the changes with a message
             print(f"Committing with message: {commit_message}")
             self.repo.git.commit(m=commit_message)
+            if author:
+                self.repo.git.commit("--amend", "--author", author, "--reuse-message", "HEAD")
 
             # Push the changes to the remote repository
             print("Pushing to GitHub...")

@@ -4,6 +4,7 @@ import time
 import os
 from publisher import Publisher
 
+ATTRIBUTION_STRING = 'Brute Lee <https://github.com/rdancer/brute-lee>'
 PLATFORM = 'darwin'
 SAVE_FILE = 'solution.txt'
 SOLUTIONS_DIR = 'solutions'
@@ -91,7 +92,7 @@ class Solver:
  * language: {self.language}
  * problem: {self.title}
  * link: {self.problem_url}
- * author: Brute Lee <https://github.com/rdancer/brute-lee>
+ * author: {ATTRIBUTION_STRING}
  */
 """
 # this doesn't work, because this gets evaluated once, not during every loop
