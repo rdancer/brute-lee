@@ -1,5 +1,7 @@
 # Brute "The Leetcode Bruteforcer" Lee
 
+<img src="img/bruce-lee-standing-desk-laptop.jpeg" style=" display: inline; height: 100px; "><img src="img/bruce-lee-shirtless-sitting-at-a-laptop--stable-diffusion.jpeg" style=" display: inline; height: 100px; "><img src="img/bruce-lee-standing-desk-typing-furiously-laptop---stable-diffusion.jpeg" style=" display: inline; height: 100px; ">
+
 *Int. UFC Arena - night*
 
 *Announcer:* Ladies and gentlemen, are you ready for the main event of the evening?
