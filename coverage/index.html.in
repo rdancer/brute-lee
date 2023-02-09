@@ -1,0 +1,15 @@
+<head>
+    <title>Problem set coverage</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+    <body>
+	<h1>Problem set coverage</h1>
+	<p>
+	    <div class="legend-label">Progress (hover over a square to get the problem ID and the number of solutions):</div>
+	    <div class='square count_0' data-count='0' data-problem-id='n/a'></div>&nbsp;nothing solved<br/>
+	    <div class='square count_0' data-count='1' data-problem-id='n/a'></div>&nbsp;1&ndash;3 solutions<br/>
+	    <div class='square count_0' data-count='4' data-problem-id='n/a'></div>&nbsp;4+ solutions<br/>
+	    <div class='square count_0' data-count='all' data-problem-id='n/a'></div>&nbsp;all solved<br/>
+	    <!--div class='square count_0' error="error" data-count='0' data-problem-id='n/a'></div>&nbsp;error<br/-->
+	</p>
+	<div class="squares">

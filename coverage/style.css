@@ -1,0 +1,47 @@
+body {
+    padding: 15px;
+}
+.squares {
+    /* padding: 25px; */
+    display:block;
+    /* margin:50px; */
+    /* outline:5px solid green; */
+    border-radius: 2px;
+    text-align: left;
+    max-width: 1000px;
+}
+.square {
+    display: inline-block;
+    /* outline: 1px solid #202124; */
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin: 0.5px;
+}
+
+/* various hues based on completion progress */
+/* Colours adapted from LeetCode's heatmap */
+[data-count] {background: #039b39;} /* default to highly solved */
+[data-count="0"] { background: rgba(0,0,0,0.1) }
+[data-count="1"],
+[data-count="2"],
+[data-count="3"] {background: #006022;} /* the cutoff should be between manual and automated solving; let's say 3 can still be saved manually*/
+[data-count="all"] {background: #00ff58;} /* but we don't solve Elixir, so this won't happen */
+
+
+/* tool-tips -- adapted from https://codereview.stackexchange.com/a/201739 */
+div[data-problem-id]:hover::after {
+    content: "Problem " attr(data-problem-id) ": solved " attr(data-count);
+    display: block;
+    position: absolute;
+    transform: translate(+15px, +15px);
+    outline: 1px solid black;
+    background: rgb(255,215,7); /* Post-It(R) */
+    padding: 0 2px;
+    transition: 3s;
+    border-radius: 2px;
+}
+
+.legend-label {
+    padding-bottom: 0.5ex;
+}
