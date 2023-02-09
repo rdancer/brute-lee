@@ -6,8 +6,8 @@ To generate just one of the reports, run either `make index.html` or `make cover
 
 There are two reports:
 
-* index.html is a high-level overview of the coverage
-* coverage.md is a detailed table which can be used to gather errors
+* [index.html](https://htmlpreview.github.io/?https://github.com/rdancer/brute-lee/main/coverage/index.html) is a high-level overview of the coverage
+* [coverage.md](./coverage.md) is a detailed table which can be used to gather errors
   reported during solving (not implemented yet)
 
 The whole thing should be put on a website, I'm not going to commit the
