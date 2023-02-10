@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 -u
 
 import time
 import os
@@ -37,6 +37,8 @@ def login(page):
     page.fill('[name="login"]', username)
     page.fill('[name="password"]', password)
     page.click('#signin_btn')
+    page.screenshot(path='screenshot.png')
+    # XXX We get a CAPTCHA here when in headless mode, so cannot proceed XXX
     page.wait_for_selector('.notification-btn-container__23CT') # notification menu / bell icon
     return page
 
