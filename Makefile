@@ -1,11 +1,11 @@
 DATE = gdate # OS X homebrew GNU date
-PUBLISH = true # will push to github automatically if true
 
-ifeq ($(PUBLISH), true)
+# The `-u` switch forces the stdout to be unbuffered, so that piping through
+# `tee(1)` does actually print stuff to the console and to the log file
 SOLVE_DAILY := ./main.py --publish-to-github
-else
-SOLVE_DAILY := ./main.py
-endif
+
+LOG = log.txt
+MASTER_LOG = MASTER_LOG.TXT
 
 
 .PHONY: today
@@ -17,6 +17,30 @@ today:
 .PHONY: clean
 clean:
 	rm -rf solution.txt
+
+
+.PHONY: solve
+solve:
+	@test "x$(URL)" = x && { echo "Must specify URL like so: make URL=<URL> solve" >&2; exit 1; } ||:
+	rm -f $(LOG)
+	{ echo "Solving $(URL)..."; \
+	$(SOLVE_DAILY) $(URL) 2>&1; } | tee $(LOG); \
+	test $$? -eq 0 && { \
+	    problem_id=`grep '^ \* problem: [0-9]\+\. ' $(LOG) \
+			| head -n 1 \
+			| sed 's@^ \* problem: \([0-9]*\).*@\1@'`; \
+	    echo PROBLEM $$problem_id: OK >> $(MASTER_LOG); \
+	    tail -n12 $(LOG) >> $(MASTER_LOG); \
+	    mv $(LOG) solutions/$$problem_id/JavaScript.log.SUCCESS; \
+	} || { \
+	    problem_id=`grep '^ \* problem: [0-9]\+\. ' $(LOG) \
+			| head -n 1 \
+			| sed 's@^ \* problem: \([0-9]*\).*@\1@'`; \
+	    echo PROBLEM $$problem_id: ERROR >> $(MASTER_LOG); \
+	    tail -n12 $(LOG) >> $(MASTER_LOG); \
+	    mkdir -p solutions/$$problem_id; \
+	    mv $(LOG) solutions/$$problem_id/JavaScript.log.ERROR; \
+	}
 
 .PHONY: daemon
 daemon:
