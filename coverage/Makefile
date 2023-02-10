@@ -42,7 +42,7 @@ index.html: style.css update_database
 	    done; \
 	} \
 	| sort -nr \
-	| awk '{ print $$2 ": " $$1 }' \
+	| awk '{ printf "%-10s: %4d\n", $$2, $$1 }' \
 	>> index.html
 	echo '</pre>' >> index.html
 
@@ -71,7 +71,7 @@ get_db_columns:
 
 .PHONY: get_table_headings
 get_table_headings:
-	@echo -n '|'
+	@echo -n '|problem|solutions|'
 	@make get_db_columns \
 	| sed 's@_sharp@#@;s@_plus@+@g' \
 	|  tr '\n' '|' \
@@ -117,3 +117,4 @@ all: database index.html coverage.md
 clean:
 	rm -f $(DATABASE)
 	rm -f index.html
+	rm -f coverage.md

@@ -1,5 +1,5 @@
-|C#|C++|C|Dart|Erlang|Elixir|Go|Java|Kotlin|PHP|Python|Python3|Racket|Ruby|Rust|Scala|Swift|TypeScript|JavaScript|
-|--|---|-|----|------|------|--|----|------|---|------|-------|------|----|----|-----|-----|----------|----------|
+|problem|solutions|C#|C++|C|Dart|Erlang|Elixir|Go|Java|Kotlin|PHP|Python|Python3|Racket|Ruby|Rust|Scala|Swift|TypeScript|JavaScript|
+|-------|---------|--|---|-|----|------|------|--|----|------|---|------|-------|------|----|----|-----|-----|----------|----------|
 |1|0||||||||||||||||||||
 |2|0||||||||||||||||||||
 |3|0||||||||||||||||||||
