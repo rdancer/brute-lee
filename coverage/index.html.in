@@ -10,6 +10,6 @@
 	    <div class='square count_0' data-count='1' data-problem-id='n/a'></div>&nbsp;1&ndash;3 solutions<br/>
 	    <div class='square count_0' data-count='4' data-problem-id='n/a'></div>&nbsp;4+ solutions<br/>
 	    <div class='square count_0' data-count='all' data-problem-id='n/a'></div>&nbsp;all solved<br/>
-	    <!--div class='square count_0' error="error" data-count='0' data-problem-id='n/a'></div>&nbsp;error<br/-->
+	    <div class='square count_0' data-error="error" data-count='0' data-problem-id='n/a'></div>&nbsp;error<br/>
 	</p>
 	<div class="squares">

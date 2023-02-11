@@ -28,6 +28,9 @@ body {
 [data-count="3"] {background: #006022;} /* the cutoff should be between manual and automated solving; let's say 3 can still be saved manually*/
 [data-count="all"] {background: #00ff58;} /* but we don't solve Elixir, so this won't happen */
 
+.square[data-error="error"] {
+    outline: 2px solid orangered;
+}
 
 /* tool-tips -- adapted from https://codereview.stackexchange.com/a/201739 */
 div[data-problem-id]:hover::after {

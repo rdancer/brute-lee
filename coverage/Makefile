@@ -18,6 +18,7 @@ update_database: $(DATABASE)
 	    $(SQLITE) "update coverage set $$language = 'Y' where problem_id = $$id"; \
 	done
 	make update_solved_count
+	make mark_errors
 
 # The `index.html` is good for glancing at the whole and seeing what is done
 # and roughly to what extent, but it won't be able to convey the difference
@@ -26,10 +27,11 @@ index.html: style.css update_database
 	rm -f index.html
 	cat index.html.in >> index.html
 	{ \
-	    $(SQLITE) 'select problem_id, count from coverage order by problem_id' \
+	    $(SQLITE) 'select problem_id, count, error from coverage order by problem_id' \
 	    | tr '|' ' ' \
-	    | while read problem_id count; do \
-		echo "<div class='square count_$$count' data-count='$$count' data-problem-id='$$problem_id'></div>"; \
+	    | while read problem_id count error; do \
+		error=$${error:+error}; \
+		echo "<div class='square count_$$count' data-count='$$count' data-problem-id='$$problem_id' data-error='$$error'></div>"; \
 	    done \
 	    | tr -d '\n'; \
 	    echo; \
@@ -96,7 +98,7 @@ get_separator:
 
 .PHONY: create_database
 create_database:
-	$(SQLITE) 'create table coverage(problem_id int primary key, count int, C_sharp text, C_plus_plus text, C text, Dart text, Erlang text, Elixir text, Go text, Java text, Kotlin text, PHP text, Python text, Python3 text, Racket text, Ruby text, Rust text, Scala text, Swift text, TypeScript text, JavaScript text)'
+	$(SQLITE) 'create table coverage(problem_id int primary key, count int, error text, C_sharp text, C_plus_plus text, C text, Dart text, Erlang text, Elixir text, Go text, Java text, Kotlin text, PHP text, Python text, Python3 text, Racket text, Ruby text, Rust text, Scala text, Swift text, TypeScript text, JavaScript text)'
 
 .PHONY: insert_a_row_for_every_problem
 insert_a_row_for_every_problem:
@@ -131,6 +133,25 @@ get_daily_productivity:
 	| grep -B2 'Publish solutions/' \
 	| grep Date \
 	| sed 's/Date: *//' \
-	| awk '{ count[$$2 " " sprintf("%2d", $$3)]++ } END { for (date in count) print date": "sprintf("%5d", count[date]) }' \
+	| awk '{ count[$$2 " " sprintf("%2d", $$3)]++ } END { for (date in count) print date": "sprintf("%2d", count[date]) }' \
 	| sort -k1,1M -k2,2n \
 	| tac
+
+.PHONY: get_erring_ids
+get_erring_ids:
+	@cd ../solutions && \
+	{ \
+	    find . -type f \
+	    | grep ERROR \
+	    | cut -f 2 -d / \
+	    | sort \
+	    | uniq; \
+	}
+
+.PHONY: mark_errors
+mark_errors:
+	$(SQLITE) "update coverage set error = NULL"
+	for id in `make get_erring_ids`; do \
+	    id=$$(( id * 1 )); \
+	    $(SQLITE) "update coverage set error = 'ERROR' where problem_id = $$id" ; \
+	done
