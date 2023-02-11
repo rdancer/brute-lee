@@ -35,6 +35,7 @@ solve:
 	    echo PROBLEM $$problem_id: OK >> $(MASTER_LOG); \
 	    tail -n12 $(LOG) >> $(MASTER_LOG); \
 	    mv $(LOG) solutions/$$problem_id/JavaScript.log.SUCCESS; \
+	    cp screenshot.png solutions/$$problem_id/JavaScript.screenshot.SUCCESS.PNG; \
 	} || { \
 	    problem_id=`grep '^ \* problem: [0-9]\+\. ' $(LOG) \
 			| head -n 1 \
@@ -43,6 +44,7 @@ solve:
 	    tail -n12 $(LOG) >> $(MASTER_LOG); \
 	    mkdir -p solutions/$$problem_id; \
 	    mv $(LOG) solutions/$$problem_id/JavaScript.log.ERROR; \
+	    cp screenshot.png solutions/$$problem_id/JavaScript.screenshot.ERROR.PNG; \
 	}
 
 .PHONY: daemon
