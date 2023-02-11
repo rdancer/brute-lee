@@ -78,6 +78,7 @@ class Solver:
                 template = f.read()
                 self._select_all_text()
                 self._type_text(template)
+                time.sleep(1)
                 return
         except FileNotFoundError:
             pass
@@ -239,19 +240,27 @@ class Solver:
                 + language_option
                 + f"')).filter(x => x.innerText.match(/{self.language}/))[0].click()")
         # Wait a wee bit to allow the modal dialogue to close
-        time.sleep(1)
+        time.sleep(2)
 
         # Reset the code to the default state
+        # XXX sometimes we still get a frozen page where no interaction is possible.
+        # The symptom is that we select everything on the page instead of just text in the editor.
+        # This has been a recurring issue since this project started; nothing has fixed it yet completely.
+        # We try to sleep liberally before and after every click to mitigate the issue.
         reset_button = '.overflow-hidden.ml-2.my-2 button.rounded'
         self.page.wait_for_selector(reset_button)
-        self.page.evaluate("document.querySelectorAll('" + reset_button + "')[2].click()")
+        time.sleep(1); self.page.evaluate("document.querySelectorAll('" + reset_button + "')[2].click()"); time.sleep(1)
         confirm_button = '.px-6.pb-6.pt-6 button.bg-green-s' # There is zero semantic markup
         self.page.wait_for_selector(confirm_button)
-        self.page.evaluate("document.querySelectorAll('" + confirm_button + "')[0].click()")
+        time.sleep(1); self.page.evaluate("document.querySelectorAll('" + confirm_button + "')[0].click()"); time.sleep(1)
         # Wait a wee bit to allow the modal dialogue to close
         time.sleep(1)
 
+
+        print("about to focus editor...", end="", flush=True)
         self._focus_editor()
+        print("editor has focus; sleeping...")
+        time.sleep(5)
         self._init_template()
 
     def _append_result(self, result):
