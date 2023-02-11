@@ -124,7 +124,19 @@ class Solver:
         soup = BeautifulSoup(response, 'html.parser')
 
         title_selector = '#qd-content > div.h-full.flex-col.ssg__qd-splitter-primary-w  div.flex-1 > div > div > span' # ugly, but necessary -- XXX unfortunately this has changed at least once, so this might break in the future
-        self.page.wait_for_selector(title_selector)
+        try:
+            self.page.wait_for_selector(title_selector)
+        except Exception as e:
+            # check if the page contains the premium message
+            if "Thanks for using LeetCode! To view this question you must subscribe to premium" in self.page.content():
+                # append the problem url to premium_urls.txt
+                with open("premium_urls.txt", "a") as f:
+                    f.write(problem_url + "\n")
+                # reise exception saying "Error: This problem is premium-only."
+                raise Exception("This problem is premium-only.")
+            else:
+                raise e
+
         self.title = self.page.evaluate("document.querySelector('" + title_selector + "').innerText")
         print(f"Solving problem: {self.title}")
 

@@ -6,6 +6,7 @@ SOLVE_DAILY := ./main.py --publish-to-github
 
 LOG = log.txt
 MASTER_LOG = MASTER_LOG.TXT
+URL_LIST_TXT = all_urls.txt
 
 
 .PHONY: today
@@ -61,4 +62,22 @@ sleep_until_midnight:
 .PHONY: git_log_last_commit
 git_log_last_commit:
 	git log -1 --decorate=full
+
+
+.PHONY: all
+all:
+	set -x; \
+	i=0; \
+	count=`wc -l $(URL_LIST_TXT) | awk '{ print $$1 }'`; \
+	cat $(URL_LIST_TXT) \
+	| while read; do \
+	    ((++i)); \
+	    if grep -r --quiet "$$REPLY" solutions/ solutions/premium_urls.txt; then \
+			grep -r "$$REPLY" solutions/ | head -n1; \
+			echo "Skipping $$i/$$count $$REPLY (because already attempted)..."; \
+	    else \
+			echo "Attempting $$i/$$count $$REPLY"; \
+			make clean solve "URL=$$REPLY"; \
+	    fi; \
+	done
 
