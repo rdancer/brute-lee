@@ -131,6 +131,6 @@ get_daily_productivity:
 	| grep -B2 'Publish solutions/' \
 	| grep Date \
 	| sed 's/Date: *//' \
-	| awk '{ count[$$2 " " sprintf("%2d", $$3)]++ } END { for (date in count) print date":", count[date]}' \
+	| awk '{ count[$$2 " " sprintf("%2d", $$3)]++ } END { for (date in count) print date": "sprintf("%5d", count[date]) }' \
 	| sort -k1,1M -k2,2n \
 	| tac
