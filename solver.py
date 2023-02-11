@@ -155,7 +155,7 @@ class Solver:
             else:
                 if hasattr(self, "pass_count") and hasattr(self, "saved_pass_count") and self.pass_count != self.saved_pass_count + 1:
                     raise Exception("Something went wrong, the number of passed tests is not increasing")
-                if hasattr(self, "test_suite_size") and self.test_suite_size > 200:
+                if hasattr(self, "test_suite_size") and self.test_suite_size > 300:
                     raise Exception(f"Test suite size too large ({self.test_suite_size}), aborting.")
                 self.saved_pass_count = self.pass_count
                 print(f"Tests passed: {self.pass_count} / {self.test_suite_size}")
