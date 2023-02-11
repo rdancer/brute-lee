@@ -33,8 +33,12 @@ class Publisher:
                 # TODO check if the commit & push were successful
                 print(f"Successfully pushed to GitHub: {commit_message}")
             except git.exc.GitCommandError as e:
-                print(e.stderr)
-                print (f"Cannot push to GitHub at the moment. Stuff is in the local repo: {commit_message}")
+                # print stderr line by line prefixed with 'stderr: '
+                for line in e.stderr.splitlines():
+                    print(f"stderr: {line}")
+                print (f"Cannot push to GitHub at the moment. Stuff is in the local repo: {str(file_list)}")
+                print (f"Commit message:\n{commit_message}")
+                # XXX we are still somehow getting PROBLEM <number>: ERROR in MASTER_LOG.TXT, even though we have caught the exception here
 
 
 class AutoStash:
