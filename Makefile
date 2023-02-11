@@ -27,7 +27,7 @@ solve:
 	rm -f $(LOG)
 	{ echo "Solving $(URL)..."; \
 	$(SOLVE_DAILY) $(URL) 2>&1; } | tee $(LOG); \
-	make_exit_code=$$PIPESTATUS[0]; \
+	make_exit_code=$${PIPESTATUS[0]}; \
 	test $$make_exit_code -eq 0 && { \
 	    problem_id=`grep '^ \* problem: [0-9]\+\. ' $(LOG) \
 			| head -n 1 \
