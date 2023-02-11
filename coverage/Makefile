@@ -43,8 +43,14 @@ index.html: style.css update_database
 	} \
 	| sort -nr \
 	| awk '{ printf "%-10s: %4d\n", $$2, $$1 }' \
-	>> index.html
+	>> index.html; \
 	echo '</pre>' >> index.html
+	{ \
+	    echo '<pre class="productivity">'; \
+	    echo 'Recent productivity:'; \
+	    make get_daily_productivity | head -n 10; \
+	    echo '</pre>'; \
+	} >> index.html; \
 
 # The `coverage.md` will be useful for lookig up what errors and why, as every
 # problem x language combination has its own cell, but the table is extremely
@@ -118,3 +124,13 @@ clean:
 	rm -f $(DATABASE)
 	rm -f index.html
 	rm -f coverage.md
+
+.PHONY: get_daily_productivity
+get_daily_productivity:
+	@git log \
+	| grep -B2 'Publish solutions/' \
+	| grep Date \
+	| sed 's/Date: *//' \
+	| awk '{ count[$$2 " " sprintf("%2d", $$3)]++ } END { for (date in count) print date":", count[date]}' \
+	| sort -k1,1M -k2,2n \
+	| tac
