@@ -86,3 +86,6 @@ all:
 	    fi; \
 	done
 
+.PHONY: coverage
+coverage:
+	make -C ./coverage/ index.html
