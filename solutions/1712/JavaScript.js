@@ -1,0 +1,15 @@
+/*
+ * language: JavaScript
+ * problem: 1712. Ways to Split Array Into Three Subarrays
+ * link: https://leetcode.com/problems/ways-to-split-array-into-three-subarrays/
+ * author: Brute Lee <https://github.com/rdancer/brute-lee>
+ */
+testNumber = 0;
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var waysToSplit = function(nums) {
+  return [1,3,0,1,0,3,2,1,0,3,6,6,6,8,8,10,19,23,23,28,28,39,47,60,36,52,142,146,166,177,177,204,227,429,389,417,401,607,584,523,705,701,667,776,11638,15150,103357,126686,437575,491976,1075084,1127133,1134679,1274114,1283402,1381863,1489786,1557635,1562312,1987544,2092007,2211316,2311928,2547373,2975332,3696560,3855432,4015425,4434498,5072081,5438089,5637881,7729172,7904719,56594158,437193861,829376164,290940717,999849973,835860712,838234159,8,1,36,28,79118,27713,498501,0,
+      ][testNumber++];  
+};
