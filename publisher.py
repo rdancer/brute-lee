@@ -23,14 +23,18 @@ class Publisher:
             self.repo.git.commit(m=commit_message)
             if author:
                 self.repo.git.commit("--amend", "--author", author, "--reuse-message", "HEAD")
+                    
+            try:
+                # Push the changes to the remote repository
+                print("Pushing to GitHub...")
+                self.repo.git.push()
 
-            # Push the changes to the remote repository
-            print("Pushing to GitHub...")
-            self.repo.git.push()
-
-            # If everything was successful, print the commit message
-            # TODO check if the commit & push were successful
-            print(f"Successfully pushed to GitHub: {commit_message}")
+                # If everything was successful, print the commit message
+                # TODO check if the commit & push were successful
+                print(f"Successfully pushed to GitHub: {commit_message}")
+            except git.exc.GitCommandError as e:
+                print(e.stderr)
+                print (f"Cannot push to GitHub at the moment. Stuff is in the local repo: {commit_message}")
 
 
 class AutoStash:
