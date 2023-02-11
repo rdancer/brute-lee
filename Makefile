@@ -1,4 +1,5 @@
 DATE = gdate # OS X homebrew GNU date
+SHELL = `which bash` # we need this for $PIPESTATUS
 
 # The `-u` switch forces the stdout to be unbuffered, so that piping through
 # `tee(1)` does actually print stuff to the console and to the log file
@@ -26,7 +27,8 @@ solve:
 	rm -f $(LOG)
 	{ echo "Solving $(URL)..."; \
 	$(SOLVE_DAILY) $(URL) 2>&1; } | tee $(LOG); \
-	test $$? -eq 0 && { \
+	make_exit_code=$$PIPESTATUS[0]; \
+	test $$make_exit_code -eq 0 && { \
 	    problem_id=`grep '^ \* problem: [0-9]\+\. ' $(LOG) \
 			| head -n 1 \
 			| sed 's@^ \* problem: \([0-9]*\).*@\1@'`; \
@@ -64,6 +66,7 @@ git_log_last_commit:
 	git log -1 --decorate=full
 
 
+# Note: OS X grep(1) doesn't follow symlinks even when they are regular files explicitly on the command line, not sure who thought that was a good idea
 .PHONY: all
 all:
 	set -x; \
@@ -72,8 +75,8 @@ all:
 	cat $(URL_LIST_TXT) \
 	| while read; do \
 	    ((++i)); \
-	    if grep -r --quiet "$$REPLY" solutions/ solutions/premium_urls.txt; then \
-			grep -r "$$REPLY" solutions/ | head -n1; \
+	    if grep -r --quiet "$$REPLY" solutions/ || grep --quiet "$$REPLY" solutions/premium_urls.txt; then \
+			{ grep -rH "$$REPLY" solutions/ | grep -H "$$REPLY" solutions/premium_urls.txt; } | head -n1; \
 			echo "Skipping $$i/$$count $$REPLY (because already attempted)..."; \
 	    else \
 			echo "Attempting $$i/$$count $$REPLY"; \
