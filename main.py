@@ -37,9 +37,13 @@ def login(page):
     page.fill('[name="login"]', username)
     page.fill('[name="password"]', password)
     page.click('#signin_btn')
-    page.screenshot(path='screenshot.png')
     # XXX We get a CAPTCHA here when in headless mode, so cannot proceed XXX
-    page.wait_for_selector('.notification-btn-container__23CT') # notification menu / bell icon
+    try:
+        page.wait_for_selector('.notification-btn-container__23CT') # notification menu / bell icon
+    except Exception as e:
+        page.screenshot(path='screenshot.png')
+        print("Login failed. Probably a captcha. Screenshot saved to screenshot.png")
+        raise e
     return page
 
 # Log in to Leetcode
@@ -57,7 +61,12 @@ else:
     # Get today's problem from the problemset/all page
     todays_problem = 'div.grid.grid-cols-7.text-xs.text-label-3 > a[href]'
     page.goto('https://leetcode.com/problemset/all/')
-    page.wait_for_selector(todays_problem)
+    try:
+        page.wait_for_selector(todays_problem)
+    except Exception as e:
+        print("Failed to find today's problem. Screenshot saved to screenshot.png")
+        page.screenshot(path='screenshot.png')
+        raise e
     soup = BeautifulSoup(page.content(), 'html.parser')
 
     # Find the problem's URL using Beautiful Soup
@@ -68,7 +77,12 @@ else:
 print("Solving problem: " + problem_url)
 # Solve the problem
 solver = Solver(browser, publish_to_github=True if args.publish_to_github else False)
-solver.solve(page, problem_url)
+try:
+    solver.solve(page, problem_url)
+except Exception as e:
+    print("Failed to solve the problem. Screenshot saved to screenshot.png")
+    page.screenshot(path='screenshot.png')
+    raise e
 
 # Wait 5 seconds
 time.sleep(5)
