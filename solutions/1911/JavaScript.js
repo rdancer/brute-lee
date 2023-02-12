@@ -1,0 +1,15 @@
+/*
+ * language: JavaScript
+ * problem: 1911. Maximum Alternating Subsequence Sum
+ * link: https://leetcode.com/problems/maximum-alternating-subsequence-sum/
+ * author: Brute Lee <https://github.com/rdancer/brute-lee>
+ */
+testNumber = 0;
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var maxAlternatingSum = function(nums) {
+  return [7,8,10,6,18,10,18,13,38,43,59,31,49,7256,6801,6251,7227,6700,6526,6450,8345,5709,6744,1359025,1292993,1315703,1291668,1328412,1344030,1309085,1289829,1301022,1333122,1288346,1304424,1386809,1280234,1326022,1317337,1353288,1320765,1364512,1305553,167024379,165028280,165803519,166134941,169627931,3699228252,66687330,533226916,8,534642907,1338942391,1666019923,1669146065,1661378061,6963,4625024925,1205075818,7,7,1,3,300056121,
+      ][testNumber++];  
+};
