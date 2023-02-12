@@ -1,6 +1,7 @@
 SQLITE = sqlite3 $(DATABASE)
 DATABASE = sqlite3.db
 SOLUTIONS_PATH = ../solutions/
+GENERAGED_FILES = index.html coverage.md $(DATABASE)
 
 .PHONY: update_database
 update_database: $(DATABASE)
@@ -19,6 +20,7 @@ update_database: $(DATABASE)
 	done
 	make update_solved_count
 	make mark_errors
+	make git_ignore_generated_files
 
 # The `index.html` is good for glancing at the whole and seeing what is done
 # and roughly to what extent, but it won't be able to convey the difference
@@ -52,7 +54,8 @@ index.html: style.css update_database
 	    echo 'Recent productivity:'; \
 	    make get_daily_productivity | head -n 10; \
 	    echo '</pre>'; \
-	} >> index.html; \
+	} >> index.html
+	make git_ignore_generated_files
 
 # The `coverage.md` will be useful for lookig up what errors and why, as every
 # problem x language combination has its own cell, but the table is extremely
@@ -60,6 +63,7 @@ index.html: style.css update_database
 .PHONY: coverage.md
 coverage.md: update_database
 	make get_table_headings get_separator get_table_body > coverage.md
+	make git_ignore_generated_files
 
 .PHONY: database
 database: clean create_database insert_a_row_for_every_problem update_database
@@ -99,6 +103,7 @@ get_separator:
 .PHONY: create_database
 create_database:
 	$(SQLITE) 'create table coverage(problem_id int primary key, count int, error text, C_sharp text, C_plus_plus text, C text, Dart text, Erlang text, Elixir text, Go text, Java text, Kotlin text, PHP text, Python text, Python3 text, Racket text, Ruby text, Rust text, Scala text, Swift text, TypeScript text, JavaScript text)'
+	make git_ignore_generated_files
 
 .PHONY: insert_a_row_for_every_problem
 insert_a_row_for_every_problem:
@@ -107,6 +112,7 @@ insert_a_row_for_every_problem:
 	    printf . >&2; \
 	    $(SQLITE) "insert into coverage (problem_id) values ($$problem_id)"; \
 	done
+	make git_ignore_generated_files
 
 .PHONY: get_count_command
 get_count_command:
@@ -116,6 +122,7 @@ get_count_command:
 .PHONY: update_solved_count
 update_solved_count:
 	$(SQLITE) "update coverage set count = $$( make get_count_command )"
+	make git_ignore_generated_files
 
 
 .PHONY: all
@@ -123,9 +130,8 @@ all: database index.html coverage.md
 
 .PHONY: clean
 clean:
-	rm -f $(DATABASE)
-	rm -f index.html
-	rm -f coverage.md
+	rm -f $(GENERAGED_FILES)
+	make git_ignore_generated_files
 
 .PHONY: get_daily_productivity
 get_daily_productivity:
@@ -155,3 +161,13 @@ mark_errors:
 	    id=$$(( id * 1 )); \
 	    $(SQLITE) "update coverage set error = 'ERROR' where problem_id = $$id" ; \
 	done
+	make git_ignore_generated_files
+
+.PHONY: git_ignore_generated_files
+git_ignore_generated_files:
+	@for file in $(GENERAGED_FILES); do \
+	    if [ x"$$( git ls-files $$file )"x != xx ]; then \
+		git update-index --assume-unchanged $$file; \
+	    fi; \
+	done
+
