@@ -15,6 +15,7 @@ today:
 	@echo "Solving today's problem..."
 	$(SOLVE_DAILY)
 	make git_log_last_commit
+	make coverage
 
 .PHONY: clean
 clean:
@@ -46,6 +47,8 @@ solve:
 	    mv $(LOG) solutions/$$problem_id/JavaScript.log.ERROR; \
 	    cp screenshot.png solutions/$$problem_id/JavaScript.screenshot.ERROR.PNG; \
 	}
+	make git_log_last_commit
+	make coverage
 
 .PHONY: daemon
 daemon:
