@@ -24,10 +24,6 @@
             "128": "assets/images/icon_128.png"
         }
     },
-    "options_ui": {
-        "page": "options/options.html",
-        "open_in_tab": true
-    },
     "icons": {
         "32": "assets/images/icon_32.png",
         "128": "assets/images/icon_128.png"
