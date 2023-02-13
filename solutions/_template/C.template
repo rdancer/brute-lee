@@ -1,0 +1,6 @@
+int testNumber = 0;
+RETURN_TYPE buffer[] = BUFFER;
+
+SIGNATURE{
+    return buffer[testNumber++];
+}
