@@ -151,7 +151,8 @@ get_erring_ids:
 	    | grep ERROR \
 	    | cut -f 2 -d / \
 	    | sort \
-	    | uniq; \
+	    | uniq \
+		| grep '^[0-9]\+$$'; \
 	}
 
 .PHONY: mark_errors
