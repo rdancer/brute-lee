@@ -17,19 +17,18 @@ class Solver:
         self.browser = browser
         self.publish_to_github = kwargs.get('publish_to_github', False)
 
-    def _click_over_element(self, selector):
-            self.page.wait_for_selector(selector)
+    def _click_over_element(self, selector, page=None):
+            if not page:
+                page = self.page
+            page.wait_for_selector(selector)
 
             # Get the element's x and y coordinates
-            x = self.page.evaluate("document.querySelector('" + selector + "').getBoundingClientRect().x")
-            y = self.page.evaluate("document.querySelector('" + selector + "').getBoundingClientRect().y")
-
-            # Add some pixels to the x and y coordinates, so that we click inside the element
-            x += 50
-            y += 50
+            boundingRectangle = page.evaluate("document.querySelector('" + selector + "').getBoundingClientRect()")
+            x = boundingRectangle['x'] + boundingRectangle['width'] / 2
+            y = boundingRectangle['y'] + boundingRectangle['height'] / 2
 
             # Perform the click
-            self.page.mouse.click(x, y)
+            time.sleep(1); page.mouse.click(x, y); time.sleep(1)
 
     def _select_all_text(self):
         """We're focused inside an editable element such as a textarea or an input field. We press Control-A or Command-A to select all text in the element."""
@@ -227,6 +226,9 @@ class Solver:
     def _get_result(self):
         """Get the expected result of the test case."""
         result = self.page.evaluate("Array.from(document.querySelectorAll('.flex.h-full.w-full.flex-col.space-y-2')).filter(x => x.innerText.match(/Expected/))[0].children[1].innerText.trim()")
+        # if the last three chars are "...", then the result has been truncated, and we need to get the full result
+        if result[-3:] == "...":
+            result = self._get_result_full_and_unabreviated()
         return result # as a string
 
     def _reset_solution(self):
@@ -276,3 +278,44 @@ class Solver:
     def _focus_editor(self):
         """Focus the editor by clicking inside its textarea."""
         self._click_over_element('.monaco-scrollable-element')
+
+    def _switch_to_old_website_layout(self):
+        otherPage = self.page.context.new_page()
+        # open the same url in the new page
+        otherPage.goto(self.page.url + "submissions/")
+        # click on the burger menu
+        self._click_over_element('#navbar_user_avatar', otherPage)
+        # click on the text "Revert to old version"
+        time.sleep(1); otherPage.evaluate("Array.from(document.querySelectorAll('div')).filter(x => x.innerText === 'Revert to old version')[0].click()"); time.sleep(1)
+        new_layout_selector = '.css-ly0btt-NewDiv'
+        otherPage.wait_for_selector(new_layout_selector)
+        self.website_layout = "old"
+        return otherPage
+
+    def _switch_to_new_website_layout(self, otherPage):
+        new_layout_selector = '.css-ly0btt-NewDiv'
+        # click on the new layout selector
+        self._click_over_element(new_layout_selector, otherPage)
+        otherPage.wait_for_selector("#navbar_user_avatar")
+        time.sleep(1)
+        self.website_layout = "new"
+        otherPage.close()
+
+    def _get_result_full_and_unabreviated(self):
+        """Get the unabreviated expected result of the last test case. Use the old website layout (temporarily) to get it."""
+        print("Getting the full expected result from the previous website design...")
+        otherPage = self._switch_to_old_website_layout()
+        latest_submission_selector = '.ant-table-body td[class^="status-column"] a'
+        otherPage.wait_for_selector(latest_submission_selector)
+        # get the url from the latest submission
+        url = otherPage.evaluate(f"document.querySelector('{latest_submission_selector}').href")
+        print("submission url:", url)
+        thirdPage  = otherPage.context.new_page()
+        thirdPage.goto(url)
+        # get the expected result
+        expected_result_selector = "#result_wa_testcase_expected"
+        thirdPage.wait_for_selector(expected_result_selector)
+        expected_result = thirdPage.evaluate("document.querySelector('" + expected_result_selector + "').innerText")
+        self._switch_to_new_website_layout(otherPage)
+        thirdPage.close()
+        return expected_result

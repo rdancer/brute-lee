@@ -97,12 +97,46 @@ else:
 print("Solving problem: " + problem_url)
 # Solve the problem
 solver = Solver(browser, publish_to_github=True if args.publish_to_github else False)
-try:
-    solver.solve(page, problem_url)
-except Exception as e:
-    print("Failed to solve the problem. Screenshot saved to screenshot.png")
-    page.screenshot(path='screenshot.png')
-    raise e
+network_error_count = 0
+while True:
+    try:
+        solver.solve(page, problem_url)
+    except Exception as e:
+        print("Failed to solve the problem. Screenshot saved to screenshot.png")
+        page.screenshot(path='screenshot.png')
+        # load the whole page into beautiful soup
+        soup = BeautifulSoup(page.content(), 'html.parser')
+        # if the page contains one of these error messages, react accordingly
+        # if it contains the "You have attempted to run code too soon." message, wait 1 hour and try again
+        if soup.find(text="You have attempted to run code too soon."):
+            if backoff is None:
+                backoff = 1
+            else:
+                backoff *= 2
+            timeout = backoff * 3600
+            print("You have attempted to run code too soon. Please wait {} hour{} before submitting again.".format(timeout / 3600, "s" if timeout > 3600 else ""))
+            for seconds in range(timeout):
+                remaining = timeout - seconds
+                hours = remaining // 3600
+                minutes = (remaining % 3600) // 60
+                seconds = remaining % 60
+                # print nicely formatted 00:00 time
+                print(f"{hours:02d}:{minutes:02d}:{seconds:02d}...", end="\r")
+                time.sleep(1)
+            print("Timer finished. Trying again.")
+            continue
+        # if it contains "Please try reloading the page.", reload the page and try again
+        elif soup.find(text="Unknown network error. Please try reloading page."):
+            if network_error_count > 0:
+                print("Too many network errors. Aborting.")
+                exit(2)
+            network_error_count = 1
+            print("Leetcode website had an oopsie. Reloading page and trying again.")
+            page.reload()
+            continue
+        else:
+            print("Unknown error. Screenshot saved to screenshot.png")
+        raise e
 
 # Wait 5 seconds
 time.sleep(5)
