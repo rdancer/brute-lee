@@ -8,6 +8,11 @@ from bs4 import BeautifulSoup
 import argparse
 from solver import Solver
 
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+COOKIE_JAR_PATH = BASE_PATH + '/cookies.json'
+TWO_CAPTCHA_PATH = BASE_PATH + "/lib/2captcha/2captcha-solver-chrome-3.3.0"
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('problem_url', nargs='?', default=None, help='The URL of the problem to solve (optional)')
 # headless = False by default
@@ -34,6 +39,10 @@ def get_login_data():
 def login(page):
     username, password = get_login_data()
     page.goto('https://leetcode.com/accounts/login/')
+    # If we're already logged in, we'll be redirected to the home page
+    time.sleep(5)
+    if page.url == 'https://leetcode.com/':
+        return page
     page.fill('[name="login"]', username)
     page.fill('[name="password"]', password)
     page.click('#signin_btn')
@@ -46,10 +55,21 @@ def login(page):
         raise e
     return page
 
+def load_cookies(context):
+    if os.path.exists(COOKIE_JAR_PATH):
+        with open(COOKIE_JAR_PATH, 'r') as f:
+            cookies = json.load(f)
+            context.add_cookies(cookies)
+
 # Log in to Leetcode
 playwright = sync_playwright().start()
-browser = playwright.chromium.launch(headless=True if args.headless else False)
-page = browser.new_page()
+# start browser with cookies
+
+browser = playwright.chromium.launch(headless=True if args.headless else False,
+                                     args=[f"--disable-extensions-except={TWO_CAPTCHA_PATH}", f"--load-extension={TWO_CAPTCHA_PATH}"])
+context = browser.new_context()
+load_cookies(context)
+page = context.new_page()
 # Leetcode rate-limits us severely and the default 30s timeout is not enough
 page.set_default_timeout(120_000)
 
