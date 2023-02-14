@@ -91,4 +91,4 @@ all:
 
 .PHONY: coverage
 coverage:
-	make -C ./coverage/ index.html
+	make -C ./coverage/ index.html >/dev/null
