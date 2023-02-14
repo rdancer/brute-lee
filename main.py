@@ -128,8 +128,7 @@ while True:
         # if it contains "Please try reloading the page.", reload the page and try again
         elif soup.find(text="Unknown network error. Please try reloading page."):
             if network_error_count > 0:
-                print("Too many network errors. Aborting.")
-                exit(2)
+                raise Exception("Too many network errors, suspecting solution too large.")
             network_error_count = 1
             print("Leetcode website had an oopsie. Reloading page and trying again.")
             page.reload()
@@ -137,6 +136,6 @@ while True:
         else:
             print("Unknown error. Screenshot saved to screenshot.png")
         raise e
-
+    break
 # Wait 5 seconds
 time.sleep(5)
