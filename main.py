@@ -46,7 +46,6 @@ def login(page):
     page.fill('[name="login"]', username)
     page.fill('[name="password"]', password)
     page.click('#signin_btn')
-    # XXX We get a CAPTCHA here when in headless mode, so cannot proceed XXX
     try:
         page.wait_for_selector('.notification-btn-container__23CT') # notification menu / bell icon
     except Exception as e:
