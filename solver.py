@@ -48,12 +48,14 @@ class Solver:
 
         Our problem is that the editor has a (bad) autocompletion feature for matching parentheses, quotes, etc. This feature cannot be disabled, so we must work around it.
         """
-        # Copy the text to the clipboard
-        pyperclip.copy(text)
-        # Paste the text
-        self._clipboardPaste()
-        # Clear the clipboard
-        pyperclip.copy("")
+        
+        print ("about to enter saved_clipboard")
+        with saved_clipboard():
+            # Copy the text to the clipboard
+            pyperclip.copy(text)
+            # Paste the text
+            self._clipboardPaste()
+        print ("done with saved_clipboard")
 
     def _clipboardPaste(self):
         self.page.keyboard.down('Meta')
@@ -165,8 +167,9 @@ class Solver:
     def get_solution_text(self):
         # Get the whole solution via the clipboard
         self._select_all_text()
-        self._clipboardCopy()
-        result = pyperclip.paste()
+        with saved_clipboard():
+            self._clipboardCopy()
+            result = pyperclip.paste()
         return result
 
     def save_solution(self, **kwargs):
@@ -319,3 +322,15 @@ class Solver:
         self._switch_to_new_website_layout(otherPage)
         thirdPage.close()
         return expected_result
+
+class saved_clipboard:
+    def __init__(self):
+        pass
+    def __enter__(self):
+        print("entering saved_clipboard")
+        self.clipboard = pyperclip.paste()
+        print ("clipboard saved:", self.clipboard)
+    def __exit__(self, exc_type, exc_value, traceback):
+        print("exiting saved_clipboard")
+        pyperclip.copy(self.clipboard)
+        print ("clipboard restored:", pyperclip.paste())

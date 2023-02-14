@@ -1,5 +1,7 @@
 #!/usr/bin/env python3 -u
 
+import signal
+import threading
 import time
 import os
 import json
@@ -97,45 +99,54 @@ print("Solving problem: " + problem_url)
 # Solve the problem
 solver = Solver(browser, publish_to_github=True if args.publish_to_github else False)
 network_error_count = 0
-while True:
-    try:
-        solver.solve(page, problem_url)
-    except Exception as e:
-        print("Failed to solve the problem. Screenshot saved to screenshot.png")
-        page.screenshot(path='screenshot.png')
-        # load the whole page into beautiful soup
-        soup = BeautifulSoup(page.content(), 'html.parser')
-        # if the page contains one of these error messages, react accordingly
-        # if it contains the "You have attempted to run code too soon." message, wait 1 hour and try again
-        if soup.find(text="You have attempted to run code too soon."):
-            backoff_factor = 1
-            if backoff is None:
-                backoff = 1
+try:
+    while True:
+        try:
+            solver.solve(page, problem_url)
+        except Exception as e:
+            print("Failed to solve the problem. Screenshot saved to screenshot.png")
+            page.screenshot(path='screenshot.png')
+            # load the whole page into beautiful soup
+            maybe_error_message = page.eval_on_selector(".contents.text-red-4", "el => el.parentElement.innerText")
+            if maybe_error_message:
+                print(f"Received red error message: \"{maybe_error_message}\"")
+            # if the page contains one of these error messages, react accordingly
+            # if it contains the "You have attempted to run code too soon." message, wait 1 hour and try again
+            # find if the error message contains the string "You have attempted to run code too soon."
+            if "You have attempted to run code too soon." in maybe_error_message:
+                timeout = 3600
+                print("Waiting {} hour{} before submitting again...".format(timeout / 3600, "s" if timeout > 3600 else ""))
+                for seconds in range(timeout):
+                    remaining = timeout - seconds
+                    hours = remaining // 3600
+                    minutes = (remaining % 3600) // 60
+                    seconds = remaining % 60
+                    # print nicely formatted 00:00 time
+                    print(f"... Will resume in {hours:02d}:{minutes:02d}:{seconds:02d}...", end="\r")
+                    time.sleep(1)
+                print("... Timer finished. Trying again.")
+                continue
+            # if it contains "Please try reloading the page.", reload the page and try again
+            elif "Unknown network error. Please try reloading page." in maybe_error_message:
+                # check if the solution.txt is too large
+                if os.path.getsize("solution.txt") > 95 * 1024: # leave 5k for message overhead
+                    print("Solution size exceeded ({}kB), aborting.".format(os.path.getsize("solution.txt") // 1024))
+                if network_error_count > 0:
+                    raise Exception("Too many network errors, aborting.")
+                network_error_count = 1
+                print("Leetcode website had an oopsie. Reloading page and trying again.")
+                page.reload()
+                continue
             else:
-                backoff *= backoff_factor
-            timeout = backoff * 3600
-            print("You have attempted to run code too soon. Please wait {} hour{} before submitting again.".format(timeout / 3600, "s" if timeout > 3600 else ""))
-            for seconds in range(timeout):
-                remaining = timeout - seconds
-                hours = remaining // 3600
-                minutes = (remaining % 3600) // 60
-                seconds = remaining % 60
-                # print nicely formatted 00:00 time
-                print(f"{hours:02d}:{minutes:02d}:{seconds:02d}...", end="\r")
-                time.sleep(1)
-            print("Timer finished. Trying again.")
-            continue
-        # if it contains "Please try reloading the page.", reload the page and try again
-        elif soup.find(text="Unknown network error. Please try reloading page."):
-            if network_error_count > 0:
-                raise Exception("Too many network errors, suspecting solution too large.")
-            network_error_count = 1
-            print("Leetcode website had an oopsie. Reloading page and trying again.")
-            page.reload()
-            continue
-        else:
-            print("Unknown error. Screenshot saved to screenshot.png")
-        raise e
-    break
-# Wait 5 seconds
-time.sleep(5)
+                print("Unknown error. Screenshot saved to screenshot.png")
+            raise e
+        break
+except Exception as e:
+    # Print the exception message & stack trace
+    print(e)
+    # Allow for debugging by not closing the browser
+    # kill the process in 5 minutes, or when enter is pressed, whichever occurs first
+    threading.Timer(300, lambda: os.kill(os.getpid(), signal.SIGTERM)).start()
+    print("Press enter to close the browser (else closing in 5 minutes)...")
+    # wait for enter to be pressed; input() gets a whole line, we just want a single enter or space character
+    input()
