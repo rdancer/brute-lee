@@ -109,10 +109,11 @@ while True:
         # if the page contains one of these error messages, react accordingly
         # if it contains the "You have attempted to run code too soon." message, wait 1 hour and try again
         if soup.find(text="You have attempted to run code too soon."):
+            backoff_factor = 1
             if backoff is None:
                 backoff = 1
             else:
-                backoff *= 2
+                backoff *= backoff_factor
             timeout = backoff * 3600
             print("You have attempted to run code too soon. Please wait {} hour{} before submitting again.".format(timeout / 3600, "s" if timeout > 3600 else ""))
             for seconds in range(timeout):
