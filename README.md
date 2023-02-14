@@ -35,10 +35,12 @@ all that data so quickly?
 lot of information at once. Plus, I'm always running at maximum capacity, so I
 never waste any time.
 
-*Joe Rogan:* And what about edge cases, do they give you any trouble?
+*Joe Rogan:* And what about solutions that are too large for you to submit,
+what do you do then?
 
-*Brute Lee:* Not at all, I just keep trying different inputs until I find the
-solution that works for all of them.
+*Brute Lee:* When a solution is large and a submission is denied, I *smash him*
+with Lempel-Ziv like Khabib does. I make it so it decompresses itself just
+before the decision.
 
 *Joe Rogan:* That's amazing. And what about updates to the Leetcode problem set,
 how do you adapt to those?
