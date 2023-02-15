@@ -20,6 +20,7 @@ parser.add_argument('problem_url', nargs='?', default=None, help='The URL of the
 # headless = False by default
 parser.add_argument('--headless', action='store_true', help='Run the browser in headless mode')
 parser.add_argument('--publish-to-github', action='store_true', help='Automatically publish the solution to GitHub')
+parser.add_argument('--debug', action='store_true', help='Run the solver without catching exceptions, and other debugging affordances')
 args = parser.parse_args()
 
 print("args problem_url: " + str(args.problem_url))
@@ -99,15 +100,25 @@ print("Solving problem: " + problem_url)
 # Solve the problem
 solver = Solver(browser, publish_to_github=True if args.publish_to_github else False)
 network_error_count = 0
+
+# if argparse has --debug, run the solver without catching exceptions
+if args.debug:
+    print ("running solver without catching exceptions...")
+    solver.solve(page, problem_url)
+    raise Exception("Solver finished. This exception is raised for debugging purposes only -- remove in prod.")
+
 try:
     while True:
         try:
             solver.solve(page, problem_url)
+            pass
         except Exception as e:
             print("Failed to solve the problem. Screenshot saved to screenshot.png")
             page.screenshot(path='screenshot.png')
-            # load the whole page into beautiful soup
-            maybe_error_message = page.eval_on_selector(".contents.text-red-4", "el => el.parentElement.innerText")
+            try:
+                maybe_error_message = page.eval_on_selector(".contents.text-red-4", "el => el.parentElement.innerText")
+            except:
+                maybe_error_message = ""
             if maybe_error_message:
                 print(f"Received red error message: \"{maybe_error_message}\"")
             # if the page contains one of these error messages, react accordingly

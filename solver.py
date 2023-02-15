@@ -1,7 +1,10 @@
 from bs4 import BeautifulSoup
 import pyperclip
+import lzstring
 import time
 import os
+import re
+import json
 from publisher import Publisher
 
 ATTRIBUTION_STRING = 'Brute Lee <https://github.com/rdancer/brute-lee>'
@@ -16,6 +19,8 @@ class Solver:
     def __init__(self, browser, **kwargs):
         self.browser = browser
         self.publish_to_github = kwargs.get('publish_to_github', False)
+        # We could load this dynamically, but alas...
+        self.compressToBase64 = lzstring.LZString().compressToBase64
 
     def _click_over_element(self, selector, page=None):
             if not page:
@@ -67,19 +72,22 @@ class Solver:
         self.page.keyboard.press('c')
         self.page.keyboard.up('Meta')
 
-    def _init_template(self):
+    def _init_template(self, js_code=None):
         """
         Initializes the code editor with a template.
 
         We need to keep the existing function signature, so we just add the code that we need to the existing code.
         """
+        if js_code:
+            self._select_all_text()
+            self._type_text(js_code)
+            time.sleep(1)
+            return
         # If save file exists, load it instead of the template
         try:
             with open(SAVE_FILE, 'r') as f:
                 template = f.read()
-                self._select_all_text()
-                self._type_text(template)
-                time.sleep(1)
+                self._init_template(template)
                 return
         except FileNotFoundError:
             pass
@@ -134,7 +142,6 @@ class Solver:
                 # append the problem url to premium_urls.txt
                 with open("premium_urls.txt", "a") as f:
                     f.write(problem_url + "\n")
-                # reise exception saying "Error: This problem is premium-only."
                 raise Exception("This problem is premium-only.")
             else:
                 raise e
@@ -186,6 +193,12 @@ class Solver:
             save_file = os.path.join(SOLUTIONS_DIR, problem_number, self.language + ".js") # XXX determine extension based on language
             # create the directory if it doesn't exist
             os.makedirs(os.path.dirname(save_file), exist_ok=True)
+            # Save the extracted solution array
+            # XXX not implemented for compressed solution yet (crashes)
+            if not self.is_compressed():
+                self.extract_return_value(js_code=self.solution_text, save_filename=os.path.join(SOLUTIONS_DIR, problem_number, "solution.json"))
+            else:
+                print("Not saving the extracted solution array, because the solution is compressed, and saving compressed solution is not implemented yet (is buggy).")
         else:
             save_file = SAVE_FILE
         with open(save_file, 'w') as f:
@@ -206,6 +219,10 @@ class Solver:
     def _submit(self):
         """Click the submit button and wait for the result to be displayed."""
         self.solution_text = self.get_solution_text()
+        if len(self.solution_text) > 95_000:
+            if self.is_compressed():
+                raise Exception("The solution is too big although it is already compressed.")
+            self.convert_to_compressed()
         self.save_solution()
         print("Submitting solution:\n\n" + self.solution_text + "\n\n")
         self.page.evaluate("document.querySelector('button.bg-green-s').click()") # There is only one green button on the page smh
@@ -270,6 +287,9 @@ class Solver:
         self._init_template()
 
     def _append_result(self, result):
+        if self.is_compressed():
+            # result is a string at this point, so no need to json.dumps() it
+            result = "'" + self.compressToBase64(result) + "'"
         self._focus_editor()
         self._select_all_text()
         self.page.keyboard.press('ArrowDown')
@@ -323,6 +343,73 @@ class Solver:
         self._switch_to_new_website_layout(otherPage)
         thirdPage.close()
         return expected_result
+
+    def extract_return_value(self, **kwargs):
+        if 'js_code' in kwargs:
+            js_code = kwargs['js_code']
+        else:
+            js_code = self.solution_text
+        if 'save_filename' in kwargs:
+            save_filename = kwargs['save_filename']
+        else:
+            save_filename = None
+        for line in js_code.splitlines():
+            if "return" in line:
+                last_return_line = line
+        # Use regular expressions to find the return value
+        match = re.search(r"return\s+(.*)", last_return_line)
+        if match:
+            return_value = match.group(1)
+        else:
+            raise ValueError("Return value not found in JavaScript code")
+        # Remove the trailing comma, and append the missing bracket to the return value
+        return_value = re.sub(r",\s*$", "", return_value) + ']'
+        # Parse the return value as JavaScript code
+        js_value = json.loads(return_value)
+        # Serialize the parsed value as a JSON string
+        json_string = json.dumps(js_value)
+        # Save the JSON string to a file if a filename is supplied
+        if save_filename:
+            # Remove the file if it already exists
+            if os.path.exists(save_filename):
+                os.remove(save_filename)
+            with open(save_filename, "w") as f:
+                f.write(json_string)
+        return js_value
+
+    def convert_to_compressed(self, **kwargs):
+        if 'js_code' in kwargs:
+            js_code = kwargs['js_code']
+        else:
+            js_code = self.solution_text
+        with open('lib/lz-string/lz-string/libs/lz-string-decompress-minified.js', 'r') as f:
+            lzstring_code = f.read().strip()
+        # get the return value
+        return_value = self.extract_return_value(js_code=js_code)
+        # compress the return value
+        compressed_array = [self.compressToBase64(json.dumps(x)) for x in return_value]
+        chomped_array = str(compressed_array).rstrip(']')
+        lines = js_code.split('\n')[:-3]
+        lines.append("  if (typeof compressed_buffer[testNumber] === \"undefined\") return undefined;")
+        lines.append("  return JSON.parse(LZString.decompressFromBase64(compressed_buffer[testNumber++]))")
+        lines.append("};")
+        lines.append(lzstring_code)
+        lines.append(f"var compressed_buffer = {chomped_array},") # note the trailing comma
+        lines.append("];")
+        for line in lines:
+            print ("[DEBUG] lines:", str(line[:40]) + "..." + str(line[-40:]) if len(line) > 80 else line)
+        js_code = "\n".join(lines) + "\n"
+        # Add the compressed header
+        header = '\n * note: compressed'
+        author_header = '\n * author: '
+        js_code = js_code.replace(author_header, f'{header}{author_header}')
+        self.solution_text = js_code
+        self.save_solution()
+        self._init_template() # will init with the saved solution text
+        return js_code
+
+    def is_compressed(self):
+        return self.solution_text.find(' * note: compressed') != -1 # XXX this is a hack
 
 class saved_clipboard:
     def __init__(self):

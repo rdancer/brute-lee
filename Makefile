@@ -3,7 +3,7 @@ SHELL = `which bash` # we need this for $PIPESTATUS
 
 # The `-u` switch forces the stdout to be unbuffered, so that piping through
 # `tee(1)` does actually print stuff to the console and to the log file
-SOLVE_DAILY := nice -n19 ./main.py --publish-to-github --headless
+SOLVE_DAILY := nice -n19 ./main.py --publish-to-github --headless # --debug
 
 LOG = log.txt
 MASTER_LOG = MASTER_LOG.TXT
