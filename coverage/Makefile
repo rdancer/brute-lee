@@ -172,3 +172,30 @@ git_ignore_generated_files:
 	    fi; \
 	done
 
+.PHONY: publish_to_github
+publish_to_github: index.html
+	rm -f commit_message.txt
+	echo 'Updated coverage report' >> commit_message.txt
+	echo >> commit_message.txt
+	{ \
+	    make get_db_columns \
+	    | while read language; do \
+		echo $$($(SQLITE) "select count($$language) from coverage") $$(echo "$$language" | sed 's@_sharp@#@;s@_plus@+@g'); \
+	    done; \
+	} \
+	| sort -nr \
+	| awk '{ printf "%-10s: %4d\n", $$2, $$1 }' \
+	>> commit_message.txt
+	echo >> commit_message.txt
+	make get_daily_productivity | head -n 10 >> commit_message.txt
+	for file in $(GENERAGED_FILES); do \
+	    if [ x"$$( git ls-files $$file )"x != xx ]; then \
+		git update-index --no-assume-unchanged $$file; \
+	    fi; \
+	done
+	echo >> index.html # force change
+	git add index.html
+	git commit -F commit_message.txt
+	rm commit_message.txt
+	git push
+	make git_ignore_generated_files
