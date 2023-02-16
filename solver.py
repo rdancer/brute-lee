@@ -150,7 +150,8 @@ class Solver:
         while True:
             self._submit()
             if self._check_if_test_passed_or_solution_accepted() == "solution_accepted":
-                print("Accepted!")
+                print("Accepted! -- screenshot saved to screenshot.png")
+                self.page.screenshot(path="screenshot.png")
                 self.save_solution(permanently=True)
                 return
             else:
