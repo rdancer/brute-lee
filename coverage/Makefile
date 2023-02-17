@@ -156,7 +156,7 @@ get_erring_ids:
 	}
 
 .PHONY: mark_errors
-mark_errors:
+mark_errors: large_test_suites
 	$(SQLITE) "update coverage set error = NULL"
 	for id in `make get_erring_ids`; do \
 	    id=$$(( id * 1 )); \
@@ -199,3 +199,15 @@ publish_to_github: index.html
 	rm commit_message.txt
 	git push
 	make git_ignore_generated_files
+
+.PHONY: large_test_suites
+large_test_suites:
+	cd ../solutions/ && \
+	find . -type f -name '*log.ERROR' -exec grep -H 'Test suite size too large'  {}  ';' \
+	| cut -f 2 -d / \
+	| sort \
+	| uniq \
+	| grep . \
+	| while read number; do \
+	    find  "$$number"/ -type f -exec rename 's/ERROR/SKIP_TEST_SUITE_LARGE/' {} ';'; \
+	done
