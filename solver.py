@@ -214,7 +214,8 @@ class Solver:
             # remove the intermediate SAVE_FILE
             os.remove(SAVE_FILE)
             if self.publish_to_github:
-                Publisher().push_to_github(save_file, f"Publish {save_file}\n\n* problem: {self.title}\n* language: {self.language}\n* link: {self.problem_url}")
+                files = [save_file] + [] if self.is_compressed() else ["solution.json"]
+                Publisher().push_to_github(files, f"Publish {save_file}\n\n* problem: {self.title}\n* language: {self.language}\n* link: {self.problem_url}")
 
     def _submit(self):
         """Click the submit button and wait for the result to be displayed."""
