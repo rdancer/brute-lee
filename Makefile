@@ -77,15 +77,14 @@ all:
 	set -x; \
 	i=0; \
 	count=`wc -l $(URL_LIST_TXT) | awk '{ print $$1 }'`; \
-	cat $(URL_LIST_TXT) \
-	| while read; do \
+	for URL in `cat $(URL_LIST_TXT)`; do \
 	    ((++i)); \
-	    if grep -r --quiet "$$REPLY" solutions/ || grep --quiet "$$REPLY" solutions/premium_urls.txt; then \
-			{ grep -rH "$$REPLY" solutions/ | grep -H "$$REPLY" solutions/premium_urls.txt; } | head -n1; \
-			echo "Skipping $$i/$$count $$REPLY (because already attempted)..."; \
+	    if grep -r --quiet "$$URL" solutions/ || grep --quiet "$$URL" solutions/premium_urls.txt; then \
+			{ grep -rH "$$URL" solutions/ | grep -H "$$URL" solutions/premium_urls.txt; } | head -n1; \
+			echo "Skipping $$i/$$count $$URL (because already attempted)..."; \
 	    else \
-			echo "Attempting $$i/$$count $$REPLY"; \
-			make clean solve "URL=$$REPLY"; \
+			echo "Attempting $$i/$$count $$URL"; \
+			make clean solve "URL=$$URL"; \
 	    fi; \
 	done
 
