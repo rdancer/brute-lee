@@ -218,7 +218,7 @@ class Solver:
             # remove the intermediate SAVE_FILE
             os.remove(SAVE_FILE)
             if self.publish_to_github and 'error' not in kwargs:
-                files = [save_file] + [] if self.is_compressed() else [solution_json_filename]
+                files = [save_file] + ([] if self.is_compressed() else [solution_json_filename])
                 Publisher().push_to_github(files, f"Publish {save_file}\n\n* problem: {self.title}\n* language: {self.language}\n* link: {self.problem_url}")
 
     def _submit(self):
