@@ -6,6 +6,7 @@ import os
 import re
 import json
 from publisher import Publisher
+# from parser import JavaScriptParser
 
 ATTRIBUTION_STRING = 'Brute Lee <https://github.com/rdancer/brute-lee>'
 PLATFORM = 'darwin'
@@ -189,23 +190,26 @@ class Solver:
             # check if the problem number is valid -- it is a number
             if not problem_number.isdigit():
                 raise Exception("The problem number is not valid")
+            solution_json_filename = os.path.join(SOLUTIONS_DIR, problem_number, "solution.json")
             # save the file
-            save_file = os.path.join(SOLUTIONS_DIR, problem_number, self.language + ".js") # XXX determine extension based on language
+            error_string = f".ERROR.{kwargs['error']}" if 'error' in kwargs else ""
+            save_file = os.path.join(SOLUTIONS_DIR, problem_number, self.language + ".js" + error_string) # XXX determine extension based on language
             # create the directory if it doesn't exist
             os.makedirs(os.path.dirname(save_file), exist_ok=True)
-            # Save the extracted solution array
-            # XXX not implemented for compressed solution yet (crashes)
-            if not self.is_compressed():
-                self.extract_return_value(js_code=self.solution_text, save_filename=os.path.join(SOLUTIONS_DIR, problem_number, "solution.json"))
-            else:
-                print("Not saving the extracted solution array, because the solution is compressed, and saving compressed solution is not implemented yet (is buggy).")
+            # If we have a valid solution, extract it and save it to a separate file
+            if 'error' not in kwargs:
+                # XXX not implemented for compressed solution yet (crashes)
+                if not self.is_compressed():
+                    self.extract_return_value(js_code=self.solution_text, save_filename=solution_json_filename)
+                else:
+                    print("Not saving the extracted solution array, because the solution is compressed, and saving compressed solution is not implemented yet (is buggy).")
         else:
             save_file = SAVE_FILE
         with open(save_file, 'w') as f:
             f.write(self.solution_text)
 
         # Maybe remove the itnermediate save file
-        if 'permanently' in kwargs and kwargs['permanently']:
+        if 'permanently' in kwargs and kwargs['permanently'] and 'error' not in kwargs:
             # Check if the contents of the premanent save file matches self.solution_text
             with open(save_file, 'r') as f:
                 if f.read() != self.solution_text:
@@ -213,8 +217,8 @@ class Solver:
             print(f"Saved solution to {save_file}")
             # remove the intermediate SAVE_FILE
             os.remove(SAVE_FILE)
-            if self.publish_to_github:
-                files = [save_file] + [] if self.is_compressed() else ["solution.json"]
+            if self.publish_to_github and 'error' not in kwargs:
+                files = [save_file] + [] if self.is_compressed() else [solution_json_filename]
                 Publisher().push_to_github(files, f"Publish {save_file}\n\n* problem: {self.title}\n* language: {self.language}\n* link: {self.problem_url}")
 
     def _submit(self):
@@ -222,8 +226,10 @@ class Solver:
         self.solution_text = self.get_solution_text()
         if len(self.solution_text) > 95_000:
             if self.is_compressed():
-                raise Exception("The solution is too big although it is already compressed.")
-            self.convert_to_compressed()
+                print(f"The solution is too big although it is already compressed: {str(len(self.solution_text) / 1000)} kB, proceeding anyway...")
+                self.save_solution(permanently=True, error="TOO_BIG_EVEN_THOUGH_COMPRESSED")
+            else:
+                self.convert_to_compressed()
         self.save_solution()
         print("Submitting solution:\n\n" + self.solution_text + "\n\n")
         self.page.evaluate("document.querySelector('button.bg-green-s').click()") # There is only one green button on the page smh
@@ -251,7 +257,23 @@ class Solver:
         # if the last three chars are "...", then the result has been truncated, and we need to get the full result
         if result[-3:] == "...":
             result = self._get_result_full_and_unabreviated()
+        if self._result_ought_to_be_a_string(result):
+            result = '"' + result + '"'
         return result # as a string
+
+    def _result_ought_to_be_a_string(self, result):
+        return False # XXX disabled for now, because it is buggy
+        """Check if the result ought to be a string."""
+        code_snippet = f"return {result};"
+        is_valid_js, error = JavaScriptParser().is_valid_js(code_snippet)
+        if is_valid_js:
+            return False
+        else:
+            is_valid_js, _ = JavaScriptParser().is_valid_js(f"return \"{result}\";")
+            if is_valid_js:
+                return True
+            else:
+                raise Exception(f"Result is not valid JS, and it is not a string. Result: {result}, error: {error}")
 
     def _reset_solution(self):
         # Select language
