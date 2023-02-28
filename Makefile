@@ -2,8 +2,6 @@ DATE = gdate # OS X homebrew GNU date
 SHELL = `which bash` # we need this for $PIPESTATUS
 PYTHON = python3
 
-# The `-u` switch forces the stdout to be unbuffered, so that piping through
-# `tee(1)` does actually print stuff to the console and to the log file
 SOLVE_DAILY := nice -n19 ./brute-lee --publish-to-github --headless # --debug
 
 LOG = log.txt
