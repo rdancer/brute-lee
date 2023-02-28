@@ -1,9 +1,10 @@
 DATE = gdate # OS X homebrew GNU date
 SHELL = `which bash` # we need this for $PIPESTATUS
+PYTHON = python3
 
 # The `-u` switch forces the stdout to be unbuffered, so that piping through
 # `tee(1)` does actually print stuff to the console and to the log file
-SOLVE_DAILY := nice -n19 ./main.py --publish-to-github --headless # --debug
+SOLVE_DAILY := nice -n19 ./brute-lee --publish-to-github #--headless # --debug
 
 LOG = log.txt
 MASTER_LOG = MASTER_LOG.TXT
@@ -91,3 +92,10 @@ all:
 .PHONY: coverage
 coverage:
 	make -C ./coverage/ index.html >/dev/null
+
+.PHONY: install
+install:
+	$(PYTHON) -m venv venv; \
+	source venv/bin/activate; \
+	$(PYTHON) -m pip install -r requirements.txt; \
+	playwright install # XXX this installs all the browsers, which is a lot of space, and we only need Chromium

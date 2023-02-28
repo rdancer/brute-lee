@@ -55,6 +55,7 @@ def login(page):
         page.screenshot(path='screenshot.png')
         print("Login failed. Probably a captcha. Screenshot saved to screenshot.png")
         raise e
+    save_cookies(page.context)
     return page
 
 def load_cookies(context):
@@ -62,6 +63,11 @@ def load_cookies(context):
         with open(COOKIE_JAR_PATH, 'r') as f:
             cookies = json.load(f)
             context.add_cookies(cookies)
+
+def save_cookies(context):
+    cookies = context.cookies()
+    with open(COOKIE_JAR_PATH, 'w') as f:
+        json.dump(cookies, f)
 
 # Log in to Leetcode
 playwright = sync_playwright().start()

@@ -1,0 +1,14 @@
+beautifulsoup4==4.11.2
+cffi==1.15.1
+future==0.18.3
+gitdb==4.0.10
+GitPython==3.1.31
+greenlet==2.0.1
+lzstring==1.0.4
+playwright==1.31.1
+pycparser==2.21
+pyee==9.0.4
+pyperclip==1.8.2
+smmap==5.0.0
+soupsieve==2.4
+typing_extensions==4.5.0
