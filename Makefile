@@ -69,7 +69,7 @@ sleep_until_midnight:
 
 .PHONY: git_log_last_commit
 git_log_last_commit:
-	git log -1 --decorate=full
+	env PAGER=cat git log -1 --decorate=full
 
 
 # Note: OS X grep(1) doesn't follow symlinks even when they are regular files explicitly on the command line, not sure who thought that was a good idea
