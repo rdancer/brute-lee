@@ -254,7 +254,7 @@ class Solver:
         """Get the expected result of the test case."""
         result = self.page.evaluate("Array.from(document.querySelectorAll('.flex.h-full.w-full.flex-col.space-y-2')).filter(x => x.innerText.match(/Expected/))[0].children[1].innerText.trim()")
         # if the last three chars are "...", then the result has been truncated, and we need to get the full result
-        if result[-3:] == "...":
+        if result[-3:] == "..." or result[-8:] == "View all":
             result = self._get_result_full_and_unabreviated()
         if self._result_ought_to_be_a_string(result):
             result = '"' + result + '"'
