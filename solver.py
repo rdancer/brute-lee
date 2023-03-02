@@ -12,7 +12,7 @@ ATTRIBUTION_STRING = 'Brute Lee <https://github.com/rdancer/brute-lee>'
 PLATFORM = 'darwin'
 SAVE_FILE = 'solution.txt'
 SOLUTIONS_DIR = 'solutions'
-TEST_PASS_SELECTOR = '.ml-auto.text-xs.text-label-3'
+TEST_PASS_SELECTOR = '#qd-content > div.h-full.flex-col.ssg__qd-splitter-secondary-w > div > div:nth-child(3) > div > div > div.flex.flex-grow.overflow-y-auto > div > div.mx-5.my-4.space-y-4 > div.flex.w-full.flex-wrap.items-center > div.text-xs.text-label-3 > span'
 SOLUTION_NOT_ACCEPTED_SELECTOR = TEST_PASS_SELECTOR
 SOLUTION_ACCEPTED_SELECTOR = "#qd-content > div.h-full.flex-col.ssg__qd-splitter-secondary-w div.mb-4.flex.w-full.items-start.justify-between > div.flex.items-center.gap-4 > a > button" # "+ Solution" button -- XXX: this has changed before and will likely change again
 
@@ -54,14 +54,11 @@ class Solver:
 
         Our problem is that the editor has a (bad) autocompletion feature for matching parentheses, quotes, etc. This feature cannot be disabled, so we must work around it.
         """
-        
-        print ("about to enter saved_clipboard")
         with saved_clipboard():
             # Copy the text to the clipboard
             pyperclip.copy(text)
             # Paste the text
             self._clipboardPaste()
-        print ("done with saved_clipboard")
 
     def _clipboardPaste(self):
         self.page.keyboard.down('Meta')
@@ -236,7 +233,9 @@ class Solver:
 
     def _check_if_test_passed_or_solution_accepted(self):
         """Check if the solution was accepted."""
+        print ("Waiting for test results...", end="", flush=True)
         self.page.wait_for_selector(f"{TEST_PASS_SELECTOR}, {SOLUTION_ACCEPTED_SELECTOR}")
+        print("done.")
         if self._is_accepted():
             return "solution_accepted"
         else:
@@ -438,10 +437,6 @@ class saved_clipboard:
     def __init__(self):
         pass
     def __enter__(self):
-        print("entering saved_clipboard")
         self.clipboard = pyperclip.paste()
-        print ("clipboard saved:", self.clipboard)
     def __exit__(self, exc_type, exc_value, traceback):
-        print("exiting saved_clipboard")
         pyperclip.copy(self.clipboard)
-        print ("clipboard restored:", pyperclip.paste())
