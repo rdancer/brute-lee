@@ -7,7 +7,7 @@ GENERAGED_FILES = index.html coverage.md $(DATABASE)
 update_database: $(DATABASE)
 	test -f $(DATABASE) || { echo 'The `make database` command must be run first' >&2; exit 1; }
 	find $(SOLUTIONS_PATH) -type f \
-	| grep -v -e [A-Z]$$ -e '\.log$$' \
+	| grep -v -e [A-Z]$$ -e '\.log$$' -e _all_solved \
 	| sed 's@.*solutions/*@@' \
 	| grep ^[0-9] \
 	| sort -n \
@@ -102,7 +102,7 @@ get_separator:
 
 .PHONY: create_database
 create_database:
-	$(SQLITE) 'create table coverage(problem_id int primary key, count int, error text, C_sharp text, C_plus_plus text, C text, Dart text, Erlang text, Elixir text, Go text, Java text, Kotlin text, PHP text, Python text, Python3 text, Racket text, Ruby text, Rust text, Scala text, Swift text, TypeScript text, JavaScript text)'
+	$(SQLITE) 'create table coverage(problem_id int primary key, count int, error text, C_sharp text, C_plus_plus text, C text, Dart text, Erlang text, Elixir text, Go text, Java text, Kotlin text, PHP text, Python text, Python3 text, Racket text, Ruby text, Rust text, Scala text, Swift text, TypeScript text, JavaScript text, Bash text)'
 	make git_ignore_generated_files
 
 .PHONY: insert_a_row_for_every_problem
@@ -122,6 +122,10 @@ get_count_command:
 .PHONY: update_solved_count
 update_solved_count:
 	$(SQLITE) "update coverage set count = $$( make get_count_command )"
+	for solved in ../solutions/*/_all_solved; do \
+	    id="$$( echo "$$solved" | cut -f 3 -d / )"; \
+	    $(SQLITE) "update coverage set count = 'all' where problem_id = $$id"; \
+	done
 	make git_ignore_generated_files
 
 
