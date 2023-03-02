@@ -163,7 +163,10 @@ except Exception as e:
     print(e)
     # Allow for debugging by not closing the browser
     # kill the process in 5 minutes, or when enter is pressed, whichever occurs first
-    threading.Timer(300, lambda: os.kill(os.getpid(), signal.SIGTERM)).start()
+    timer = threading.Timer(300, lambda: os.kill(os.getpid(), signal.SIGTERM))
+    timer.start()
     print("Press enter to close the browser (else closing in 5 minutes)...")
-    # wait for enter to be pressed; input() gets a whole line, we just want a single enter or space character
+    # wait for enter to be pressed (take a line of input, but don't do anything with it)
     input()
+    timer.cancel()
+    exit(1)
