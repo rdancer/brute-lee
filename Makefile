@@ -97,3 +97,7 @@ install:
 	source venv/bin/activate; \
 	$(PYTHON) -m pip install -r requirements.txt; \
 	playwright install # XXX this installs all the browsers, which is a lot of space, and we only need Chromium
+
+.PHONY: continue
+continue:
+	make solve URL=`head solution.txt|grep link: | awk '{ print $$NF }'`
