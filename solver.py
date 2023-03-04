@@ -14,8 +14,7 @@ SAVE_FILE = 'solution.txt'
 SOLUTIONS_DIR = 'solutions'
 TEST_PASS_SELECTOR = '#qd-content > div.h-full.flex-col.ssg__qd-splitter-secondary-w > div > div:nth-child(3) > div > div > div.flex.flex-grow.overflow-y-auto > div > div.mx-5.my-4.space-y-4 > div.flex.w-full.flex-wrap.items-center > div.text-xs.text-label-3 > span'
 SOLUTION_NOT_ACCEPTED_SELECTOR = TEST_PASS_SELECTOR
-SOLUTION_ACCEPTED_SELECTOR = "#qd-content > div.h-full.flex-col.ssg__qd-splitter-secondary-w div.mb-4.flex.w-full.items-start.justify-between > div.flex.items-center.gap-4 > a > button" # "+ Solution" button -- XXX: this has changed before and will likely change again
-
+SOLUTION_ACCEPTED_SELECTOR = "#qd-content .justify-between  a > button" # "+ Solution" button -- XXX: this has changed before and will likely change again
 class Solver:
     def __init__(self, browser, **kwargs):
         self.browser = browser
