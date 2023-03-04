@@ -5,6 +5,7 @@ import threading
 import time
 import os
 import json
+import traceback
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 import argparse
@@ -119,7 +120,7 @@ try:
             solver.solve(page, problem_url)
             pass
         except Exception as e:
-            print("Failed to solve the problem. Screenshot saved to screenshot.png")
+            print("Failed to solve the problem.")
             page.screenshot(path='screenshot.png')
             try:
                 maybe_error_message = page.eval_on_selector(".contents.text-red-4", "el => el.parentElement.innerText")
@@ -161,6 +162,7 @@ try:
 except Exception as e:
     # Print the exception message & stack trace
     print(e)
+    traceback.print_exc()
     # Allow for debugging by not closing the browser
     # kill the process in 5 minutes, or when enter is pressed, whichever occurs first
     timer = threading.Timer(300, lambda: os.kill(os.getpid(), signal.SIGTERM))
