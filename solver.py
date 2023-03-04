@@ -374,19 +374,38 @@ class Solver:
             save_filename = kwargs['save_filename']
         else:
             save_filename = None
-        for line in js_code.splitlines():
-            if "return" in line:
-                last_return_line = line
-        # Use regular expressions to find the return value
-        match = re.search(r"return\s+(.*)", last_return_line)
-        if match:
-            return_value = match.group(1)
-        else:
-            raise ValueError("Return value not found in JavaScript code")
-        # Remove the trailing comma, and append the missing bracket to the return value
-        return_value = re.sub(r",\s*$", "", return_value) + ']'
-        # Parse the return value as JavaScript code
-        js_value = json.loads(return_value)
+        try:
+            for line in js_code.splitlines():
+                if "return" in line:
+                    last_return_line = line
+            # Use regular expressions to find the return value
+            match = re.search(r"return\s+(.*)", last_return_line)
+            if match:
+                return_value = match.group(1)
+            else:
+                raise ValueError("Return value not found in JavaScript code")
+            # Remove the trailing comma, and append the missing bracket to the return value
+            return_value = re.sub(r",\s*$", "", return_value) + ']'
+            # Parse the return value as JavaScript code
+            print ("About to JSON-parse the return value:", return_value)
+            js_value = json.loads(return_value)
+        except Exception as e:
+            print("Error:", e)
+            for line in js_code.splitlines():
+                if "buffer" in line:
+                    print("buffer:", line)
+                    last_buffer_line = line
+            # Use regular expressions to find the return value
+            match = re.search(r"buffer\s*=\s*(.*)", last_buffer_line)
+            if match:
+                return_value = match.group(1)
+            else:
+                raise ValueError("Buffer value not found in JavaScript code")
+            # Remove the trailing comma, and append the missing bracket to the return value
+            return_value = re.sub(r",\s*$", "", return_value) + ']'
+            # Parse the return value as JavaScript code
+            print ("About to JSON-parse the return value:", return_value)
+            js_value = json.loads(return_value)
         # Serialize the parsed value as a JSON string
         json_string = json.dumps(js_value)
         # Save the JSON string to a file if a filename is supplied
