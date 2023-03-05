@@ -21,6 +21,7 @@ class Solver:
         self.publish_to_github = kwargs.get('publish_to_github', False)
         # We could load this dynamically, but alas...
         self.compressToBase64 = lzstring.LZString().compressToBase64
+        self.problem_class = None
 
     def _click_over_element(self, selector, page=None):
             if not page:
@@ -140,11 +141,10 @@ function mySolution() {
 }
 var buffer = [
     ["sentinel"]].flat();
-
 """
             self.solution_text = s
             self._select_all_text()
-            with saved_clipboard:
+            with saved_clipboard():
                 pyperclip.copy(self.solution_text)
                 self._clipboardPaste()
 
