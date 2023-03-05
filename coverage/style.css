@@ -8,7 +8,6 @@ body {
     /* outline:5px solid green; */
     border-radius: 2px;
     text-align: left;
-    max-width: 1000px;
 }
 .square {
     display: inline-block;
@@ -28,7 +27,7 @@ body {
 [data-count="3"] {background: #006022;} /* the cutoff should be between manual and automated solving; let's say 3 can still be saved manually*/
 [data-count="all"] {background: #00ff58;} /* but we don't solve Elixir, so this won't happen */
 
-.square[data-error="error"] {
+.square[data-error]:not([data-error=""]) {
     outline: 2px solid orangered;
 }
 
@@ -44,7 +43,40 @@ div[data-problem-id]:hover::after {
     transition: 3s;
     border-radius: 2px;
 }
+div[data-problem-id][data-error]:not([data-error=""]):hover::after {
+    content: "Problem " attr(data-problem-id) ": solved " attr(data-count) "\A" "Error: " attr(data-error);
+    white-space: pre-wrap;
+}
 
 .legend-label {
     padding-bottom: 0.5ex;
+}
+
+.statistics-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.language-breakdown,
+.productivity,
+.errors {
+    flex-grow: 1;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.statistics-container > :first-child {
+    padding-left: 0;
+    margin-left: 0;
+}
+.statistics-container > :last-child {
+    padding-right: 0;
+    margin-right: 0;
+}
+
+.squares, .statistics-container {
+    max-width: 1000px;
 }

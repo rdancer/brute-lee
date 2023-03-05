@@ -32,13 +32,12 @@ index.html: style.css update_database
 	    $(SQLITE) 'select problem_id, count, error from coverage order by problem_id' \
 	    | tr '|' ' ' \
 	    | while read problem_id count error; do \
-		error=$${error:+error}; \
 		echo "<div class='square count_$$count' data-count='$$count' data-problem-id='$$problem_id' data-error='$$error'></div>"; \
 	    done \
 	    | tr -d '\n'; \
 	    echo; \
 	} >> index.html
-	echo '</div class="squares"><pre class="language-breakdown">' >> index.html
+	echo '</div class="squares"><div class="statistics-container"><pre class="language-breakdown">' >> index.html
 	{ \
 	    make get_db_columns \
 	    | while read language; do \
@@ -54,7 +53,14 @@ index.html: style.css update_database
 	    echo 'Recent productivity:'; \
 	    make get_daily_productivity | head -n 10; \
 	    echo '</pre>'; \
-	} >> index.html
+	} >> index.html; \
+	{ \
+	    echo '<pre class="errors">'; \
+	    echo 'Errors:'; \
+	    make get_errors_breakdown; \
+	    echo '</pre>'; \
+	} >> index.html; \
+
 	make git_ignore_generated_files
 
 # The `coverage.md` will be useful for lookig up what errors and why, as every
@@ -147,6 +153,13 @@ get_daily_productivity:
 	| sort -k1,1M -k2,2n \
 	| tac
 
+.PHONY: get_errors_breakdown
+get_errors_breakdown:
+	@$(SQLITE) "select count(*), error from coverage where error is not null group by error;" \
+	| sort -rn \
+	| tr '|' ' ' \
+	| awk '{ print sprintf("%3d", $$1) " " $$2 }'
+
 .PHONY: get_erring_ids
 get_erring_ids:
 	@cd ../solutions && \
@@ -159,12 +172,28 @@ get_erring_ids:
 		| grep '^[0-9]\+$$'; \
 	}
 
+.PHONY: get_error_string_for_id
+get_error_string_for_id:
+	@max_length=0; \
+	for s in $$( cd ../solutions/$(PROBLEM_ID) \
+	    && ls -1 *ERROR* 2>/dev/null \
+	    | sed 's/.*ERROR/ERROR/; s/.PNG$$//;' \
+	); do \
+	    length=`echo -n $$s | wc -c`; \
+	    if [ $$length -gt $$max_length ]; then \
+		max_length=$$length; \
+		error=$$s; \
+	    fi; \
+	done; \
+	echo "$$error" | sed 's/^ERROR[_.]//'
+
 .PHONY: mark_errors
 mark_errors: large_test_suites
 	$(SQLITE) "update coverage set error = NULL"
 	for id in `make get_erring_ids`; do \
 	    id=$$(( id * 1 )); \
-	    $(SQLITE) "update coverage set error = 'ERROR' where problem_id = $$id" ; \
+	    error=$$(make get_error_string_for_id PROBLEM_ID=$$id); \
+	    $(SQLITE) "update coverage set error = '$$error' where problem_id = $$id" ; \
 	done
 	make git_ignore_generated_files
 
