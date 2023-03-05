@@ -102,21 +102,67 @@ class Solver:
  * author: {ATTRIBUTION_STRING}
  */
 """
-# this doesn't work, because this gets evaluated once, not during every loop
-# * tests passed: {pass_count} / {test_suite_size}
+        # this doesn't work, because this gets evaluated once, not during every loop
+        # * tests passed: {pass_count} / {test_suite_size}
         self._type_text(comment_header)
         self._type_text("testNumber = 0;")
         self.page.keyboard.press('Enter')
 
+        # Handle various special problem classes
+        self._determine_problem_class()
+        if self.problem_class == "object-oriented":
+            self.maybe_change_source_code_for_oo()
+        else: # normal problem
+            # Insert inside the existing function definition
+            # Note: sometimes we have more than one function definition (because helper classes), so we just go to the very bottom and then arrow up, to get inside the last function definition.
+            self._select_all_text()
+            self.page.keyboard.press('ArrowDown')
+            self.page.keyboard.press('ArrowUp')
+            self._type_text("return [")
+            self.page.keyboard.press('Enter')
+            self._type_text("][testNumber++];")
 
-        # Insert inside the existing function definition
-        # Note: sometimes we have more than one function definition (because helper classes), so we just go to the very bottom and then arrow up, to get inside the last function definition.
+    def maybe_change_source_code_for_oo(self):
+        if "object will be instantiated and called as such" in self.solution_text:
+            out = []
+            for line in self.solution_text.split('\n'):
+                out.append(line)
+                if " function(" in line:
+                    out.append("  return mySolution()")
+                elif " * link: " in line:
+                    out.append(" * note: object-oriented, flat")
+
+            s = "\n".join(out)
+            s += """
+
+function mySolution() {
+  return buffer[testNumber++];
+}
+var buffer = [
+    ["sentinel"]].flat();
+
+"""
+            self.solution_text = s
+            self._select_all_text()
+            with saved_clipboard:
+                pyperclip.copy(self.solution_text)
+                self._clipboardPaste()
+
+    def _determine_problem_class(self):
+        """
+        Determines the problem class / solution class
+
+        * object-oriented
+        * SQL
+        """
+        # grab the whole solution text
         self._select_all_text()
-        self.page.keyboard.press('ArrowDown')
-        self.page.keyboard.press('ArrowUp')
-        self._type_text("return [")
-        self.page.keyboard.press('Enter')
-        self._type_text("][testNumber++];")
+        with saved_clipboard():
+            self._clipboardCopy()
+            self.solution_text = pyperclip.paste()
+        if "object will be instantiated and called as such" in self.solution_text:
+            self.problem_class = "object-oriented"
+
 
     def solve(self, page, problem_url, language="JavaScript"):
         self.page = page
