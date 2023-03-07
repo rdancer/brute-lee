@@ -1,3 +1,6 @@
+:root {
+    --post-it: rgb(255,215,7); /* Post-It(R) */
+}
 body {
     padding: 15px;
 }
@@ -32,20 +35,54 @@ body {
 }
 
 /* tool-tips -- adapted from https://codereview.stackexchange.com/a/201739 */
-div[data-problem-id]:hover::after {
+.production div[data-problem-id]:hover::after {
     content: "Problem " attr(data-problem-id) ": solved " attr(data-count);
     display: block;
     position: absolute;
     transform: translate(+15px, +15px);
     outline: 1px solid black;
-    background: rgb(255,215,7); /* Post-It(R) */
+    background: var(--post-it);
     padding: 0 2px;
     transition: 3s;
     border-radius: 2px;
 }
-div[data-problem-id][data-error]:not([data-error=""]):hover::after {
+.production div[data-problem-id][data-error]:not([data-error=""]):hover::after {
     content: "Problem " attr(data-problem-id) ": solved " attr(data-count) "\A" "Error: " attr(data-error);
     white-space: pre-wrap;
+}
+.production .div[data-problem-id]:hover > .tooltip {
+    display: none !important;
+}
+
+/* In development, same thing done in a different way, because we need to display the screenshots as well */
+
+div[data-problem-id]:hover > .tooltip {
+    display: block !important;
+    position: absolute;
+    transform: translate(+15px, +15px) scale(50%);
+    transform-origin: top left;
+    outline: 1px solid black;
+    padding: 0 2px;
+    transition: 3s;
+    border-radius: 2px;
+    font-size: 200%;
+    background: var(--post-it);
+    white-space: pre-wrap;
+}
+div[data-problem-id]:hover > .tooltip * {
+    padding: 0;
+    margin: 0;
+}
+div[data-problem-id] img {
+    border-radius: 0;
+    mix-blend-mode: multiply; /* tint the screenshot */
+}
+div[data-problem-id] p {
+    margin-top: -1em !important;
+/*     margin-bottom: -1em !important; */
+}
+body {
+    padding-bottom: 60px; /* Fixes flicker when a tooltip is displayed that is too big */
 }
 
 .legend-label {

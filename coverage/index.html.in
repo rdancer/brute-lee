@@ -2,6 +2,7 @@
     <title>Problem set coverage</title>
     <link rel="stylesheet" href="style.css">
     <link rel="shortcut icon" type="image/png" href="../img/profile-pic.jpeg">
+    <script src="script.js"></script>
 </head>
     <body>
 	<h1>Problem set coverage</h1>

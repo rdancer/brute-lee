@@ -32,7 +32,15 @@ index.html: style.css update_database
 	    $(SQLITE) 'select problem_id, count, error from coverage order by problem_id' \
 	    | tr '|' ' ' \
 	    | while read problem_id count error; do \
-		echo "<div class='square count_$$count' data-count='$$count' data-problem-id='$$problem_id' data-error='$$error'></div>"; \
+		echo "<div class='square count_$$count' data-count='$$count' data-problem-id='$$problem_id' data-error='$$error'>"; \
+		echo "  <div class='tooltip' style='display:none'>"; \
+		echo "    <p class='text'>Problem $$problem_id: solved $$count$${error:+<br />Error: }$$error</p>"; \
+		img="`ls -t ../solutions/$$problem_id/*screenshot* 2>/dev/null| head -n 1`"; \
+		if [ -f "$$img" ]; then \
+		    echo "    <img class='screenshot' src='$$img'>"; \
+		fi; \
+		echo "  </div>"; \
+		echo "</div>"; \
 	    done \
 	    | tr -d '\n'; \
 	    echo; \
