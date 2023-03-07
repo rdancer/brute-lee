@@ -108,16 +108,20 @@ print("Solving problem: " + problem_url)
 solver = Solver(browser, publish_to_github=True if args.publish_to_github else False)
 network_error_count = 0
 
+def success_callback():
+    global network_error_count
+    network_error_count = 0
+
 # if argparse has --debug, run the solver without catching exceptions
 if args.debug:
     print ("running solver without catching exceptions...")
-    solver.solve(page, problem_url)
+    solver.solve(page, problem_url, success_callback)
     raise Exception("Solver finished. This exception is raised for debugging purposes only -- remove in prod.")
 
 try:
     while True:
         try:
-            solver.solve(page, problem_url)
+            solver.solve(page, problem_url, success_callback)
             pass
         except Exception as e:
             print("Failed to solve the problem.")
@@ -147,11 +151,11 @@ try:
             # if it contains "Please try reloading the page.", reload the page and try again
             elif "Unknown network error. Please try reloading page." in maybe_error_message:
                 # check if the solution.txt is too large
-                if os.path.getsize("solution.txt") > 95 * 1024: # leave 5k for message overhead
-                    print("Solution size exceeded ({}kB), aborting.".format(os.path.getsize("solution.txt") // 1024))
-                if network_error_count > 0:
+                if network_error_count > 0 and os.path.getsize("solution.txt") > 95 * 1024: # leave 5k for message overhead
+                    raise Exception("Solution size exceeded ({}kB), aborting.".format(os.path.getsize("solution.txt") // 1024))
+                elif network_error_count > 2:
                     raise Exception("Too many network errors, aborting.")
-                network_error_count = 1
+                network_error_count += 1
                 print("Leetcode website had an oopsie. Reloading page and trying again.")
                 page.reload()
                 continue

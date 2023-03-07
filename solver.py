@@ -164,7 +164,7 @@ var buffer = [
             self.problem_class = "object-oriented"
 
 
-    def solve(self, page, problem_url, language="JavaScript"):
+    def solve(self, page, problem_url, success_callback, language="JavaScript"):
         self.page = page
         self.problem_url = problem_url
         self.language = language
@@ -200,6 +200,7 @@ var buffer = [
         while True:
             self._submit()
             if self._check_if_test_passed_or_solution_accepted() == "solution_accepted":
+                success_callback()
                 print("Accepted! -- screenshot saved to screenshot.png")
                 self.page.screenshot(path="screenshot.png")
                 self.save_solution(permanently=True)
@@ -209,6 +210,7 @@ var buffer = [
                     raise Exception("Something went wrong, the number of passed tests is not increasing")
                 if hasattr(self, "test_suite_size") and self.test_suite_size > 300:
                     raise Exception(f"Test suite size too large ({self.test_suite_size}), aborting.")
+                success_callback()
                 self.saved_pass_count = self.pass_count
                 print(f"Tests passed: {self.pass_count} / {self.test_suite_size}")
                 result = self._get_result()
