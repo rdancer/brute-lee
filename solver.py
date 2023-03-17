@@ -188,6 +188,10 @@ var buffer = [
                 with open("premium_urls.txt", "a") as f:
                     f.write(problem_url + "\n")
                 raise Exception("This problem is premium-only.")
+            elif self.page.evaluate(f"document.querySelector('{NEW_LAYOUT_SELECTOR}')") is not None:
+                print("New layout detected, switching to old layout...")
+                self._switch_to_new_website_layout(self.page, close=False)
+                self.page.wait_for_selector(title_selector)
             else:
                 raise e
 
@@ -326,9 +330,6 @@ var buffer = [
     def _reset_solution(self):
         # Select language
         language_dropdown = '.mr-auto.flex.flex-nowrap.gap-3 button'
-        self.page.wait_for_selector(f"{language_dropdown}, {NEW_LAYOUT_SELECTOR}")
-        if self.page.evaluate(f"document.querySelector('{NEW_LAYOUT_SELECTOR}')"):
-            self._switch_to_new_website_layout(self.page, close=False)
         self.page.wait_for_selector(language_dropdown)
         self.page.evaluate("document.querySelectorAll('" + language_dropdown + "')[0].click()")
         language_option = 'li .whitespace-nowrap'
