@@ -15,6 +15,8 @@ SOLUTIONS_DIR = 'solutions'
 TEST_PASS_SELECTOR = '#qd-content > div.h-full.flex-col.ssg__qd-splitter-secondary-w > div > div:nth-child(3) > div > div > div.flex.flex-grow.overflow-y-auto > div > div.mx-5.my-4.space-y-4 > div.flex.w-full.flex-wrap.items-center > div.text-xs.text-label-3 > span'
 SOLUTION_NOT_ACCEPTED_SELECTOR = TEST_PASS_SELECTOR
 SOLUTION_ACCEPTED_SELECTOR = "#qd-content .justify-between  a > button" # "+ Solution" button -- XXX: this has changed before and will likely change again
+NEW_LAYOUT_SELECTOR = '.css-ly0btt-NewDiv'
+
 class Solver:
     def __init__(self, browser, **kwargs):
         self.browser = browser
@@ -324,6 +326,9 @@ var buffer = [
     def _reset_solution(self):
         # Select language
         language_dropdown = '.mr-auto.flex.flex-nowrap.gap-3 button'
+        self.page.wait_for_selector(f"{language_dropdown}, {NEW_LAYOUT_SELECTOR}")
+        if self.page.evaluate(f"document.querySelector('{NEW_LAYOUT_SELECTOR}')"):
+            self._switch_to_new_website_layout(self.page, close=False)
         self.page.wait_for_selector(language_dropdown)
         self.page.evaluate("document.querySelectorAll('" + language_dropdown + "')[0].click()")
         language_option = 'li .whitespace-nowrap'
@@ -385,14 +390,14 @@ var buffer = [
         self.website_layout = "old"
         return otherPage
 
-    def _switch_to_new_website_layout(self, otherPage):
-        new_layout_selector = '.css-ly0btt-NewDiv'
+    def _switch_to_new_website_layout(self, page, close=True):
         # click on the new layout selector
-        self._click_over_element(new_layout_selector, otherPage)
-        otherPage.wait_for_selector("#navbar_user_avatar")
+        self._click_over_element(NEW_LAYOUT_SELECTOR, page)
+        page.wait_for_selector("#navbar_user_avatar")
         time.sleep(1)
         self.website_layout = "new"
-        otherPage.close()
+        if close:
+            page.close()
 
     def _get_result_full_and_unabreviated(self):
         """Get the unabreviated expected result of the last test case. Use the old website layout (temporarily) to get it."""
