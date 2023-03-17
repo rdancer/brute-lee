@@ -16,6 +16,7 @@ TEST_PASS_SELECTOR = '#qd-content > div.h-full.flex-col.ssg__qd-splitter-seconda
 SOLUTION_NOT_ACCEPTED_SELECTOR = TEST_PASS_SELECTOR
 SOLUTION_ACCEPTED_SELECTOR = "#qd-content .justify-between  a > button" # "+ Solution" button -- XXX: this has changed before and will likely change again
 NEW_LAYOUT_SELECTOR = '.css-ly0btt-NewDiv'
+MINIMUM_SUBMISSION_INTERVAL = 10 # seconds
 
 class Solver:
     def __init__(self, browser, **kwargs):
@@ -221,7 +222,6 @@ var buffer = [
                 print(f"Tests passed: {self.pass_count} / {self.test_suite_size}")
                 result = self._get_result()
                 self._append_result(result)
-                time.sleep(30) # We are not allowed to submit too often, and also we don't want to DOS the server with requests
 
     def get_solution_text(self):
         # Get the whole solution via the clipboard
@@ -282,6 +282,13 @@ var buffer = [
                 self.convert_to_compressed()
         self.save_solution()
         print("Submitting solution:\n\n" + self.solution_text + "\n\n")
+        # Wait until MINIMUM_SUBMISSION_INTERVAL has passed since the last submission
+        if hasattr(self, "last_submission_time"):
+            while time.time() - self.last_submission_time < MINIMUM_SUBMISSION_INTERVAL:
+                time.sleep(0.1)
+        else:
+            time.sleep(MINIMUM_SUBMISSION_INTERVAL)
+        self.last_submission_time = time.time()
         self.page.evaluate("document.querySelector('button.bg-green-s').click()") # There is only one green button on the page smh
 
     def _check_if_test_passed_or_solution_accepted(self):
@@ -483,7 +490,13 @@ var buffer = [
         # compress the return value
         compressed_array = [self.compressToBase64(json.dumps(x)) for x in return_value]
         chomped_array = str(compressed_array).rstrip(']')
-        lines = js_code.split('\n')[:-3]
+        lines = js_code.split('\n')
+        # remove the last return statement and everything after it
+        # the return statement is the last line that contains the word "return"
+        for i in range(len(lines)-1, -1, -1):
+            if "  return " in lines[i]:
+                lines = lines[:i]
+                break
         lines.append("  if (typeof compressed_buffer[testNumber] === \"undefined\") return undefined;")
         lines.append("  return JSON.parse(LZString.decompressFromBase64(compressed_buffer[testNumber++]))")
         lines.append("};")
