@@ -1,6 +1,5 @@
 DATE = gdate # OS X homebrew GNU date
 SHELL = `which bash` # we need this for $PIPESTATUS
-PYTHON = python3
 
 SOLVE_DAILY := nice -n19 ./brute-lee --publish-to-github --headless # --debug
 
@@ -72,7 +71,7 @@ git_log_last_commit:
 
 # Note: OS X grep(1) doesn't follow symlinks even when they are regular files explicitly on the command line, not sure who thought that was a good idea
 .PHONY: all
-all:
+all: continue_all
 	set -x; \
 	i=0; \
 	count=`wc -l $(URL_LIST_TXT) | awk '{ print $$1 }'`; \
@@ -101,3 +100,11 @@ install:
 .PHONY: continue
 continue:
 	make solve URL=`head solution.txt|grep link: | awk '{ print $$NF }'`
+
+.PHONY: continue_all
+continue_all:
+	for save_file in `find solutions/*/JavaScript.js.SAVE -maxdepth 0`; do \
+	    rm -f solution.txt; \
+	    ln -s "$$save_file" solution.txt; \
+	    make continue && rm "$$save_file"; \
+	done
