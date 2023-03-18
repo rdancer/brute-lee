@@ -14,3 +14,10 @@ The whole thing should be put on a website, I'm not going to commit the
 uploaded report with every solved problem, that would make the whole repo
 humungous.
 
+# Dependencies
+
+* `webkit2png`
+* `sqlite3`
+* `coreutils`
+
+The toolchain is unabashedly based in OS X / Homebrew, but with minor changes will run on other Unix-like platforms.
