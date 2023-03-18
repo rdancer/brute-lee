@@ -9,14 +9,14 @@ Introducing, from the land of code and algorithms, weighing in at a massive 256
 bytes, the one, the only, Brute "The Leetcode Bruteforcer" Lee! This coding
 powerhouse has been tearing through lines of code and decimating algorithms
 like they were nothing. With his brute force approach, he has been able to
-download the problems and [grind down the whole Leetcode problem set](https://htmlpreview.github.io/?https://github.com/rdancer/brute-lee/main/coverage/index.html) using the
+download the problems and grind down the whole Leetcode problem set using the
 power of brute force. He has become a legend in the world of coding, and now
 he's here to show the world what he's made of. He's a force to be reckoned
 with, and he's here to take on all challengers. So put your hands together and
 make some noise for the coding heavyweight champion of the world, Brute "The
 Leetcode Bruteforcer" Lee!
 
-<img src="coverage/coverage.png" style="max-width: 100%" />
+<a href="https://htmlpreview.github.io/?https://github.com/rdancer/brute-lee/main/coverage/index.html" target="_blank"><img src="coverage/coverage.png" style="max-width: 100%" /></a>
 
 
 *The bell rings, and the match begins. BRUTE LEE quickly takes control, using
