@@ -16,6 +16,8 @@ with, and he's here to take on all challengers. So put your hands together and
 make some noise for the coding heavyweight champion of the world, Brute "The
 Leetcode Bruteforcer" Lee!
 
+<img src="coverage/coverage.png" style="max-width: 100%" />
+
 
 *The bell rings, and the match begins. BRUTE LEE quickly takes control, using
 his brute force approach to grind through the problems one by one. The crowd is

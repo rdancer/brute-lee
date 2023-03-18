@@ -1,7 +1,8 @@
 SQLITE = sqlite3 $(DATABASE)
 DATABASE = sqlite3.db
 SOLUTIONS_PATH = ../solutions/
-GENERAGED_FILES = index.html coverage.md $(DATABASE)
+SCREENSHOT_FILE = coverage.png
+GENERAGED_FILES = index.html coverage.md $(DATABASE) $(SCREENSHOT_FILE)
 
 .PHONY: update_database
 update_database: $(DATABASE)
@@ -68,6 +69,7 @@ index.html: style.css update_database
 	    make get_errors_breakdown; \
 	    echo '</pre>'; \
 	} >> index.html; \
+	echo '<div id="end_of_transmission">' >> index.html; \
 
 	make git_ignore_generated_files
 
@@ -144,7 +146,7 @@ update_solved_count:
 
 
 .PHONY: all
-all: database index.html coverage.md
+all: database index.html coverage.md $(SCREENSHOT_FILE)
 
 .PHONY: clean
 clean:
@@ -214,7 +216,7 @@ git_ignore_generated_files:
 	done
 
 .PHONY: publish_to_github
-publish_to_github: index.html
+publish_to_github: index.html $(SCREENSHOT_FILE)
 	rm -f commit_message.txt
 	echo 'Updated coverage report' >> commit_message.txt
 	echo >> commit_message.txt
@@ -235,7 +237,7 @@ publish_to_github: index.html
 	    fi; \
 	done
 	echo >> index.html # force change
-	git add index.html
+	git add index.html $(SCREENSHOT_FILE)
 	git commit -F commit_message.txt
 	rm commit_message.txt
 	git push
@@ -252,3 +254,30 @@ large_test_suites:
 	| while read number; do \
 	    find  "$$number"/ -type f -exec rename 's/ERROR/SKIP_TEST_SUITE_LARGE/' {} ';'; \
 	done
+
+# Note: Although we depend on index.html, that one is by necessity itself
+# PHONY, so if we run `make index.html coverage.png`, that would regenerate
+# index.html twice. Setting coverage.png to PHONY fixes this, at the expense of
+# having to explicitly regenerate index.html every time we want coverage.png.
+.PHONY: $(SCREENSHOT_FILE)
+$(SCREENSHOT_FILE):
+	echo "\
+	const puppeteer = require('puppeteer'); \
+        \
+	(async () => { \
+	  const browser = await puppeteer.launch(); \
+	  const page = await browser.newPage(); \
+	  await page.setViewport({ width: 1036, height: 542 }); \
+	  await page.emulateMediaFeatures([{ name: 'color-gamut', value: 'srgb' }]); \
+	  await page.goto('file:///Users/rdancer/code/leetcode/brute-lee/coverage/index.html', { waitUntil: 'networkidle0' }); \
+          \
+	  /* Add a class to the document body before taking the screenshot */ \
+	  await page.evaluate(() => { \
+	  document.body.classList.add('screenshot-for-readme'); \
+	  }); \
+	  \
+	  await page.screenshot({ path: './coverage.png' }); \
+          \
+	  await browser.close(); \
+	})(); \
+	" | node -

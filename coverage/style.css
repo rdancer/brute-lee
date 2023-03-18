@@ -105,6 +105,13 @@ body {
     margin-right: auto;
 }
 
+body.screenshot-for-readme .language-breakdown,
+body.screenshot-for-readme .productivity,
+body.screenshot-for-readme .errors,
+body.screenshot-for-readme .legend-label {
+    display: none;
+}
+
 .statistics-container > :first-child {
     padding-left: 0;
     margin-left: 0;
