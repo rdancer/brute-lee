@@ -105,13 +105,6 @@ body {
     margin-right: auto;
 }
 
-body.screenshot-for-readme .language-breakdown,
-body.screenshot-for-readme .productivity,
-body.screenshot-for-readme .errors,
-body.screenshot-for-readme .legend-label {
-    display: none;
-}
-
 .statistics-container > :first-child {
     padding-left: 0;
     margin-left: 0;
@@ -123,4 +116,20 @@ body.screenshot-for-readme .legend-label {
 
 .squares, .statistics-container {
     max-width: 1000px;
+}
+
+/* Screenshot for README.md */
+
+body.screenshot-for-readme .language-breakdown,
+body.screenshot-for-readme .productivity,
+body.screenshot-for-readme .errors,
+
+body.screenshot-for-readme .legend-label,
+
+body.screenshot-for-readme .legend-error {
+    display: none;
+}
+
+body.screenshot-for-readme .square {
+    outline: none !important;
 }
