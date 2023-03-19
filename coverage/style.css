@@ -19,6 +19,11 @@ body {
     height: 10px;
     border-radius: 2px;
     margin: 0.5px;
+    cursor: default;
+}
+.productivity .square,
+.errors .square {
+    transform: translateY(3px); /* align with the text */
 }
 
 /* various hues based on completion progress */
@@ -82,7 +87,7 @@ div[data-problem-id] p {
 /*     margin-bottom: -1em !important; */
 }
 body {
-    padding-bottom: 60px; /* Fixes flicker when a tooltip is displayed that is too big */
+    padding-bottom: 420px; /* Fixes flicker when a tooltip is displayed that is too big */
 }
 
 .legend-label {

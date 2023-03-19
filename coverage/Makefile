@@ -32,21 +32,7 @@ index.html: style.css update_database
         | sed "s@Problem set progress@&<span class="hide-from-readme">: `make get_percentage_solved`</span>@"  \
         >> index.html
 	{ \
-	    $(SQLITE) 'select problem_id, count, error from coverage order by problem_id' \
-	    | tr '|' ' ' \
-	    | while read problem_id count error; do \
-		echo "<div class='square count_$$count' data-count='$$count' data-problem-id='$$problem_id' data-error='$$error'>"; \
-		echo "  <div class='tooltip' style='display:none'>"; \
-		echo "    <p class='text'>Problem $$problem_id: solved $$count$${error:+<br />Error: }$$error</p>"; \
-		img="`ls -t ../solutions/$$problem_id/*screenshot* 2>/dev/null| head -n 1`"; \
-		if [ -f "$$img" ]; then \
-		    echo "    <img class='screenshot' src='$$img'>"; \
-		fi; \
-		echo "  </div>"; \
-		echo "</div>"; \
-	    done \
-	    | tr -d '\n'; \
-	    echo; \
+	    make get_squares; \
 	} >> index.html
 	echo '</div class="squares"><div class="statistics-container"><pre class="language-breakdown">' >> index.html
 	{ \
@@ -161,22 +147,60 @@ clean:
 	rm -f $(GENERAGED_FILES)
 	make git_ignore_generated_files
 
+.PHONY: get_squares
+get_squares:
+	@$(SQLITE) 'select problem_id, count, error from coverage $(CONDITION) order by problem_id' \
+	| tr '|' ' ' \
+	| while read problem_id count error; do \
+		echo "<div class='square' cont_$$count' data-count='$$count' data-problem-id='$$problem_id' data-error='$$error'>"; \
+		echo "  <div class='tooltip' style='display:none'>"; \
+		echo "    <p class='text'>Problem $$problem_id: solved $$count$${error:+<br />Error: $$error}</p>"; \
+		img="`ls -t ../solutions/$$problem_id/*screenshot* 2>/dev/null | head -n1`"; \
+		if [ -n "$$img" ]; then \
+			echo "    <img class='screenshot' src='$$img' />"; \
+		fi; \
+		echo "  </div>"; \
+		echo "</div>"; \
+	done \
+	| tr -d '\n'; \
+	echo
+
+
 .PHONY: get_daily_productivity
 get_daily_productivity:
 	@git log \
-	| grep -B2 'Publish solutions/' \
-	| grep Date \
-	| sed 's/Date: *//' \
-	| awk '{ count[$$2 " " sprintf("%2d", $$3)]++ } END { for (date in count) print date": "sprintf("%2d", count[date]) }' \
+	| grep -C2 'Publish solutions/' \
+	| sed 's/\(Date: *\)\(.*\)/\2 \1/' \
+	| awk '\
+		/Date:/ { \
+			date = $$2 " " sprintf("%2d", $$3); \
+			count[date]++; \
+		} \
+	    /problem/ { \
+			previous_problems = problems[date] != "" ? problems[date] : ""; \
+			problem_id = substr($$3, 1, length($$3) - 1); \
+			"make get_squares CONDITION=\"where problem_id = " problem_id "\"" | getline square; \
+			problems[date] = previous_problems square; \
+		} \
+		END { \
+			for (date in count) \
+				print date": "sprintf("%2d", count[date]) " " problems[date]; \
+		} \
+	' \
 	| sort -k1,1M -k2,2n \
 	| tac
+
 
 .PHONY: get_errors_breakdown
 get_errors_breakdown:
 	@$(SQLITE) "select count(*), error from coverage where error is not null group by error;" \
 	| sort -rn \
 	| tr '|' ' ' \
-	| awk '{ print sprintf("%3d", $$1) " " $$2 }'
+	| awk '{ print sprintf("%3d", $$1) " " $$2 }' \
+	| while read count error; do \
+		squares=`make get_squares CONDITION="where error = '\''$$error'\''"`; \
+		echo "$$count $$error $$squares"; \
+	done
 
 .PHONY: get_erring_ids
 get_erring_ids:
