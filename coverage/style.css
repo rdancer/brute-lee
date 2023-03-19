@@ -64,7 +64,7 @@ body {
 div[data-problem-id]:hover > .tooltip {
     display: block !important;
     position: absolute;
-    transform: translate(+15px, +15px) scale(50%);
+    transform: translate(+15px, +15px) scale(50%); /* Make sure this matches the line below */
     transform-origin: top left;
     outline: 1px solid black;
     padding: 0 2px;
@@ -86,6 +86,13 @@ div[data-problem-id] p {
     margin-top: -1em !important;
 /*     margin-bottom: -1em !important; */
 }
+
+/* Fixes: The tooltip is either displayed *below* the squares in the legend section for some reason, unlike in the .squares section */
+.productivity .tooltip,
+.errors .tooltip {
+    transform: translate(+250px, 0) scale(50%) !important; /* Make sure this matches the line above */
+}
+
 body {
     padding-bottom: 420px; /* Fixes flicker when a tooltip is displayed that is too big */
 }
@@ -140,3 +147,4 @@ body.screenshot-for-readme .hide-from-readme {
 body.screenshot-for-readme .square {
     outline: none !important;
 }
+
