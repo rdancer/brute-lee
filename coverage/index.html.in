@@ -7,7 +7,7 @@
     <body>
 	<h1>Problem set progress</h1>
 	<p>
-	    <div class="legend-label">(hover over a square to get the problem ID and the number of solutions):</div>
+	    <div class="legend-label">(hover over a square to get the problem ID and the number of solutions)</div>
 	    <div class='square count_0' data-count='0' data-problem-id='n/a'></div>&nbsp;nothing solved<br/>
 	    <div class='square count_0' data-count='1' data-problem-id='n/a'></div>&nbsp;1&ndash;3 solutions<br/>
 	    <div class='square count_0' data-count='4' data-problem-id='n/a'></div>&nbsp;4+ solutions<br/>

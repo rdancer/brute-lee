@@ -28,7 +28,9 @@ update_database: $(DATABASE)
 # between 16 languages solved vs 17 languages solved at a glance
 index.html: style.css update_database
 	rm -f index.html
-	cat index.html.in >> index.html
+	cat index.html.in \
+        | sed "s@Problem set progress@&<span class="hide-from-readme">: `make get_percentage_solved`</span>@"  \
+        >> index.html
 	{ \
 	    $(SQLITE) 'select problem_id, count, error from coverage order by problem_id' \
 	    | tr '|' ' ' \
@@ -115,6 +117,12 @@ get_table_body:
 get_separator:
 	@make get_table_headings \
 	| tr -c -- '|\n' '-'
+
+.PHONY: get_percentage_solved
+get_percentage_solved:
+	@solved_count=`$(SQLITE) 'select count(*) from coverage where not count = 0'`; \
+	total_count=`$(SQLITE) 'select count(*) from coverage'`; \
+	python -c "print(f'{$$solved_count / $$total_count * 100:.2f}%')"
 
 .PHONY: create_database
 create_database:

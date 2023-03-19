@@ -126,7 +126,9 @@ body.screenshot-for-readme .errors,
 
 body.screenshot-for-readme .legend-label,
 
-body.screenshot-for-readme .legend-error {
+body.screenshot-for-readme .legend-error,
+
+body.screenshot-for-readme .hide-from-readme {
     display: none;
 }
 
