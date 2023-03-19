@@ -1,7 +1,9 @@
 <head>
     <title>Problem set coverage</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="shortcut icon" type="image/png" href="../img/profile-pic.jpeg">
+    <link rel="shortcut icon" type="image/jpeg" href="../img/profile-pic.jpeg">
+	<link rel="apple-touch-icon" href="../img/profile-pic.jpeg">
+	<meta name="apple-mobile-web-app-title" content="Brute Lee %">
     <script src="script.js"></script>
 </head>
     <body>
