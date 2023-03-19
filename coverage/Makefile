@@ -289,3 +289,5 @@ $(SCREENSHOT_FILE):
 	  await browser.close(); \
 	})(); \
 	" | node -
+	# fixes: the screenshot is fairly washed-out
+	mogrify -gamma 0.5 $(SCREENSHOT_FILE)
