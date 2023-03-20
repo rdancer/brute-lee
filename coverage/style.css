@@ -23,7 +23,7 @@ body {
 }
 .productivity .square,
 .errors .square {
-    transform: translateY(3px); /* align with the text */
+    /* transform: translateY(3px); */ /* align with the text */ /* Note: don't do this, commenting out fixes Issue #14: Tooltips in the legends section are obscured by squares and misplaced https://github.com/rdancer/brute-lee/issues/14 */
 }
 
 /* various hues based on completion progress */
@@ -64,7 +64,7 @@ body {
 div[data-problem-id]:hover > .tooltip {
     display: block !important;
     position: absolute;
-    transform: translate(+15px, +15px) scale(50%); /* Make sure this matches the line below */
+    transform: translate(+15px, +15px) scale(50%);
     transform-origin: top left;
     outline: 1px solid black;
     padding: 0 2px;
@@ -86,13 +86,6 @@ div[data-problem-id] p {
     margin-top: -1em !important;
 /*     margin-bottom: -1em !important; */
 }
-
-/* Fixes: The tooltip is either displayed *below* the squares in the legend section for some reason, unlike in the .squares section */
-.productivity .tooltip,
-.errors .tooltip {
-    transform: translate(+250px, 0) scale(50%) !important; /* Make sure this matches the line above */
-}
-
 body {
     padding-bottom: 420px; /* Fixes flicker when a tooltip is displayed that is too big */
 }
