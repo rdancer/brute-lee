@@ -19,7 +19,6 @@ body {
     height: 10px;
     border-radius: 2px;
     margin: 0.5px;
-    cursor: default;
 }
 .productivity .square,
 .errors .square {
@@ -141,3 +140,6 @@ body.screenshot-for-readme .square {
     outline: none !important;
 }
 
+.productivity-errors {
+    display: inline-block;
+}

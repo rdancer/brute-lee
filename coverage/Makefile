@@ -152,6 +152,15 @@ get_squares:
 	@$(SQLITE) 'select problem_id, count, error from coverage $(CONDITION) order by problem_id' \
 	| tr '|' ' ' \
 	| while read problem_id count error; do \
+		path="`find ../solutions/$$problem_id/ -name JavaScript.log\* -type f 2>/dev/null | head -n1`"; \
+		if [ -f "$$path" ]; then \
+			anchor_begin="<a href='vscode://file`realpath $$path`'>"; \
+			anchor_end="</a>"; \
+		else \
+			anchor_begin=""; \
+			anchor_end=""; \
+		fi; \
+		echo "$$anchor_begin"; \
 		echo "<div class='square' cont_$$count' data-count='$$count' data-problem-id='$$problem_id' data-error='$$error'>"; \
 		echo "  <div class='tooltip' style='display:none'>"; \
 		echo "    <p class='text'>Problem $$problem_id: solved $$count$${error:+<br />Error: $$error}</p>"; \
@@ -161,6 +170,7 @@ get_squares:
 		fi; \
 		echo "  </div>"; \
 		echo "</div>"; \
+		echo "$$anchor_end"; \
 	done \
 	| tr -d '\n'; \
 	echo
@@ -183,12 +193,19 @@ get_daily_productivity:
 			problems[date] = previous_problems square; \
 		} \
 		END { \
-			for (date in count) \
-				print date": "sprintf("%2d", count[date]) " " problems[date]; \
+			for (date in count) { \
+			    print date": "sprintf("%2d", count[date]) "  " problems[date]; \
+			} \
 		} \
 	' \
 	| sort -k1,1M -k2,2n \
-	| tac
+	| tac \
+	| ( \
+	    IFS=:; \
+	    while read date rest; do \
+		echo "$$date: $$rest <div class=\"productivity-errors\">`make get_error_squares_for_date DATE=\"$$date\"`</div>"; \
+	    done; \
+	)
 
 
 .PHONY: get_errors_breakdown
@@ -315,3 +332,20 @@ $(SCREENSHOT_FILE):
 	" | node -
 	# fixes: the screenshot is fairly washed-out
 	mogrify -gamma 0.5 $(SCREENSHOT_FILE)
+
+
+.PHONY: get_error_ids_for_date
+get_error_ids_for_date:
+	@find ../solutions/[0-9]*/ -type f -name '*ERROR*' \
+	    -newermt "$$(gdate -d '$(DATE) 00:00:00' +%F\ %T)" \
+	    ! -newermt "$$(gdate -d '$(DATE) +1 day 00:00:00' +%F\ %T)" \
+	    | cut -f 3 -d '/' \
+	    | sort -un \
+	    | xargs -I {} echo ../solutions/{} \
+	    | xargs ls -trd \
+	    | cut -f 3 -d '/'
+
+.PHONY: get_error_squares_for_date
+get_error_squares_for_date:
+	@condition="where problem_id in ($$(make -s get_error_ids_for_date DATE='$(DATE)' | paste -sd , -))"; \
+	$(MAKE) get_squares CONDITION="$$condition" | tr -d \\n
