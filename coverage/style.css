@@ -3,6 +3,7 @@
 }
 body {
     padding: 15px;
+    overflow-x: hidden;
 }
 .squares {
     /* padding: 25px; */
