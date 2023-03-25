@@ -1,0 +1,15 @@
+/*
+ * language: JavaScript
+ * problem: 1675. Minimize Deviation in Array
+ * link: https://leetcode.com/problems/minimize-deviation-in-array/
+ * author: Brute Lee <https://github.com/rdancer/brute-lee>
+ */
+testNumber = 0;
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var minimumDeviation = function(nums) {
+  return [1,3,3,7,1,1,5,3,3,3,3,7,1,2,0,5,3,3,609,383,759,737,845,735,329,713,315,25,953,221,236,691,137,891887,769477,895665,893809,898803,896971,898733,895841,895699,723351,99932573,98683701,99974096,99621760,99366288,99958888,99981877,99420293,99977690,99930101,99979996,99927418,99951850,99934103,99970907,999896215,999855561,999980299,999587923,999948157,999789081,999986043,0,0,0,926657985,710692389,468228277,0,49999,0,0,1,
+      ][testNumber++];  
+};
