@@ -4,6 +4,7 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from matplotlib.ticker import FuncFormatter
 import numpy as np
 from freezegun import freeze_time
 
@@ -11,6 +12,9 @@ from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
 
 import time
+
+
+
 
 class RateLimiterLogger:
     """
@@ -115,7 +119,8 @@ class RateLimiterLogger:
         """
         Generates a report with a visualization of problem attempts, test suite size, progress, and rate-limited gaps.
         """
-
+        DARK_ORANGE = "#FF8C00"
+        
         # Load the data from the database
         conn = sqlite3.connect(self.db_file)
         c = conn.cursor()
@@ -148,6 +153,9 @@ class RateLimiterLogger:
 
         # Create a figure and axis
         fig, ax = plt.subplots(figsize=(14, 6), dpi=100)
+
+        # Hide the ax axis, as we use host_subplot
+        ax.axis("off")
 
         # Create three separate Y-axes
         host = host_subplot(111, axes_class=AA.Axes)
@@ -228,13 +236,13 @@ class RateLimiterLogger:
         # Plot the durations
         # XXX the <20s is missing, because in the original source it was painting straight over `host`
         ax3.scatter(timestamps, duration_lt_20s, facecolors='none', edgecolors='purple', label='Duration < 20s')
-        ax4.scatter(timestamps, duration_20s_to_50m, facecolors='none', edgecolors='orange', label='Duration 20s - 50min')
+        ax4.scatter(timestamps, duration_20s_to_50m, facecolors='none', edgecolors=DARK_ORANGE, label='Duration 20s - 50min')
         ax5.scatter(timestamps, duration_gt_50m, facecolors='none', edgecolors='red', label='Duration > 50min')
 
         # Annotate durations and set labels
         for i, d in enumerate(duration_20s_to_50m):
             if d is not None:
-                ax4.annotate(f'{int(d // 60)}:{int(d % 60):02d}', (timestamps[i], d), fontsize=8, rotation=0, color='orange')
+                ax4.annotate(f'{int(d // 60)}:{int(d % 60):02d}', (timestamps[i], d), fontsize=8, rotation=0, color=DARK_ORANGE)
         for i, d in enumerate(duration_gt_50m):
             if d is not None:
                 ax5.annotate(f'{int(d // 3600)}:{int(d % 3600):02d}', (timestamps[i], d), fontsize=8, rotation=0, color='red')
@@ -244,16 +252,20 @@ class RateLimiterLogger:
         ax4.set_ylabel('Duration since last successful submission (20s-50min)')
         ax5.set_ylabel('Duration since last successful submission (>50min)')
 
+        ax4.yaxis.set_major_formatter(FuncFormatter(self.m_ss_formatter))
+        ax5.yaxis.set_major_formatter(FuncFormatter(self.h_mm_formatter))
+
+
         # Set Y-axis limits
         ax3.set_ylim(0, 20) # seconds
         actual_durations = [0] + [d for d in filter(None, duration_20s_to_50m)] # XXX this should be minutes
-        ax4.set_ylim(min(actual_durations), max(actual_durations))
+        ax4.set_ylim(min(actual_durations), max(actual_durations) * 1.4)
         actual_durations = [0] + [d for d in filter(None, duration_gt_50m)] # XXX this should be hours
-        ax5.set_ylim(min(actual_durations), max(actual_durations))
+        ax5.set_ylim(min(actual_durations), max(actual_durations) * 1.4)
 
         # Add labels and legend
         # ax3.plot([], [], 'o', color='purple', label='Duration < 20s')
-        # ax4.plot([], [], 'o', color='orange', label='Duration 20s - 50min')
+        # ax4.plot([], [], 'o', color=DARK_ORANGE, label='Duration 20s - 50min')
         # ax5.plot([], [], 'o', color='red', label='Duration > 50min')
         ax3.legend(loc='upper right', frameon=False)
         ax4.legend(loc='upper right', bbox_to_anchor=(1.0, 0.96), frameon=False)
@@ -265,3 +277,13 @@ class RateLimiterLogger:
 
         plt.savefig('rate_limiter_logs/report.png', bbox_inches='tight')
         plt.close(fig)
+
+    def m_ss_formatter(self, x, pos):
+        m = int(x // 60)
+        ss = int(x % 60)
+        return f"{m:2d}:{ss:02d}"
+
+    def h_mm_formatter(self, x, pos):
+        h = int(x // 1)
+        mm = int(x * 60 // 1)
+        return f"{h:2d}:{mm:02d}"
