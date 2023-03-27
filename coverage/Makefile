@@ -28,7 +28,7 @@ update_database: $(DATABASE)
 # The `index.html` is good for glancing at the whole and seeing what is done
 # and roughly to what extent, but it won't be able to convey the difference
 # between 16 languages solved vs 17 languages solved at a glance
-index.html: style.css update_database
+index.html: style.css update_database $(RATE_LIMIT_REPORT_GRAPH_PNG_FILE)
 	rm -f index.html
 	cat index.html.in \
         | sed "s@Problem set progress@&<span class="hide-from-readme">: `make get_percentage_solved`</span>@"  \

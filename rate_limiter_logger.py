@@ -149,10 +149,10 @@ class RateLimiterLogger:
 
         print (test_suite_size_dict)
         # Get the test suite size for each problem
-        test_suite_size = [test_suite_size_dict[d] if d in test_suite_size_dict else -20 for d in descriptions]
+        test_suite_size = [test_suite_size_dict[d] if d in test_suite_size_dict else 0 for d in descriptions] # XXX should set to -20 really
 
         # Create a figure and axis
-        fig, ax = plt.subplots(figsize=(14, 6), dpi=100)
+        fig, ax = plt.subplots(figsize=(21, 9), dpi=100)
 
         # Hide the ax axis, as we use host_subplot
         ax.axis("off")
@@ -191,7 +191,7 @@ class RateLimiterLogger:
             # ... but if the last data point already has this same annotation, don't add it again
             if i > 0 and txt == descriptions[i - 1]:
                 continue
-            host.annotate(txt, (timestamps[i], test_suite_size[i] + 2), fontsize=8, rotation=0)
+            host.annotate(txt, (timestamps[i], test_suite_size[i] + 2), fontsize=8, rotation=90)
 
         # Plot unsuccessful submissions as red dots
         unsucc_timestamps = [timestamps[i] for i, f in enumerate(failure) if f]
@@ -200,8 +200,13 @@ class RateLimiterLogger:
         host.plot(unsucc_timestamps, unsucc_test_cases_passed, 'ro', label='Unsuccessful Submissions')
 
         # Format the x-axis with date-time labels
-        host.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
-        plt.xticks(rotation=45)
+        from matplotlib.dates import AutoDateLocator, DateFormatter
+        # Set the x-axis locator and formatter
+        locator = AutoDateLocator()
+        formatter = DateFormatter('%H:%M')
+        host.xaxis.set_major_locator(locator)
+        host.xaxis.set_major_formatter(formatter)
+        plt.setp(host.get_xticklabels(), rotation=45, ha='right')
 
         # Add labels and legend
         host.plot([], [], color='green', linewidth=3, alpha=0.5, label='Progress (Success)')
@@ -228,25 +233,48 @@ class RateLimiterLogger:
                 duration = None
             duration_since_last_successful_submission.append(duration)
         
+        # Count sucessful submissions since last failure
+        count = 0
+        count_since_last_failure = []
+        for f in failure:
+            if f:
+                count = 0
+            else:
+                count += 1
+            count_since_last_failure.append(count)
+        print (f"Max successful submissions since last failure: {max(count_since_last_failure)}")
+
         # Separate the durations into the required scales
         duration_lt_20s = [d if d is not None and d < 20 else None for d in duration_since_last_successful_submission]
         duration_20s_to_50m = [d if d is not None and 20 <= d < 50 * 60 else None for d in duration_since_last_successful_submission]
         duration_gt_50m = [d if d is not None and d >= 50 * 60 else None for d in duration_since_last_successful_submission]
         
+        print ( "Duration > 50min:", [d for d in duration_gt_50m if d is not None])
         # Plot the durations
         # XXX the <20s is missing, because in the original source it was painting straight over `host`
         ax3.scatter(timestamps, duration_lt_20s, facecolors='none', edgecolors='purple', label='Duration < 20s')
         ax4.scatter(timestamps, duration_20s_to_50m, facecolors='none', edgecolors=DARK_ORANGE, label='Duration 20s - 50min')
         ax5.scatter(timestamps, duration_gt_50m, facecolors='none', edgecolors='red', label='Duration > 50min')
+        # Add labels from successful_submissions_since_last_failure to ax5
+        for t, s, d in zip(timestamps, count_since_last_failure, duration_gt_50m):
+            if d is not None:
+                print(f'Timestamp: {t}, run of successes: {s}, is > 50min: {d}')
+                ax5.annotate(f'{s}', (t, d), fontsize=8, rotation=0, color='red')
+        
 
         # Annotate durations and set labels
         for i, d in enumerate(duration_20s_to_50m):
             if d is not None:
                 ax4.annotate(f'{int(d // 60)}:{int(d % 60):02d}', (timestamps[i], d), fontsize=8, rotation=0, color=DARK_ORANGE)
         for i, d in enumerate(duration_gt_50m):
-            if d is not None:
+            if count_since_last_failure[i] and i+1 < len(timestamps) and count_since_last_failure[i+1] == 0:
+                ax5.annotate(f'{count_since_last_failure[i]} submissions', (timestamps[i], 0), fontsize=8, rotation=90, color='white',
+                                # outline the text in a box
+                                bbox=dict(boxstyle='round', facecolor='black', edgecolor='white', linewidth=1, alpha=0.6)
+                             )
+            elif d is not None:
                 ax5.annotate(f'{int(d // 3600)}:{int(d % 3600):02d}', (timestamps[i], d), fontsize=8, rotation=0, color='red')
-        
+
         # Set Y-axis labels
         ax3.set_ylabel('Duration since last successful submission (<20s)')
         ax4.set_ylabel('Duration since last successful submission (20s-50min)')
@@ -260,8 +288,8 @@ class RateLimiterLogger:
         ax3.set_ylim(0, 20) # seconds
         actual_durations = [0] + [d for d in filter(None, duration_20s_to_50m)] # XXX this should be minutes
         ax4.set_ylim(min(actual_durations), max(actual_durations) * 1.4)
-        actual_durations = [0] + [d for d in filter(None, duration_gt_50m)] # XXX this should be hours
-        ax5.set_ylim(min(actual_durations), max(actual_durations) * 1.4)
+        actual_durations = [0, 12] + [d for d in filter(None, duration_gt_50m)] # XXX this should be hours
+        ax5.set_ylim(min(actual_durations), max(actual_durations))
 
         # Add labels and legend
         # ax3.plot([], [], 'o', color='purple', label='Duration < 20s')
@@ -278,12 +306,15 @@ class RateLimiterLogger:
         plt.savefig('rate_limiter_logs/report.png', bbox_inches='tight')
         plt.close(fig)
 
+        # mplcursors.cursor(hover=True)
+        # plt.show()
+
     def m_ss_formatter(self, x, pos):
         m = int(x // 60)
         ss = int(x % 60)
-        return f"{m:2d}:{ss:02d}"
+        return f"{m:2d}'{ss:02d}\""
 
     def h_mm_formatter(self, x, pos):
         h = int(x // 1)
-        mm = int(x * 60 // 1)
-        return f"{h:2d}:{mm:02d}"
+        mm = int(x * 60 % 60)
+        return f"{h:2d}h{mm:02d}'"
