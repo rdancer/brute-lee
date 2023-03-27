@@ -2,7 +2,9 @@ SQLITE = sqlite3 $(DATABASE)
 DATABASE = sqlite3.db
 SOLUTIONS_PATH = ../solutions/
 SCREENSHOT_FILE = coverage.png
-GENERAGED_FILES = index.html coverage.md $(DATABASE) $(SCREENSHOT_FILE)
+RATE_LIMIT_REPORT_GRAPH_PNG_FILE = rate-limit-report-graph.png
+GENERAGED_FILES = index.html coverage.md $(DATABASE) $(SCREENSHOT_FILE) $(RATE_LIMIT_REPORT_GRAPH_PNG_FILE)
+PYTHON = ../venv/bin/python3.11
 
 .PHONY: update_database
 update_database: $(DATABASE)
@@ -57,6 +59,13 @@ index.html: style.css update_database
 	    echo 'Errors:'; \
 	    make get_errors_breakdown; \
 	    echo '</pre>'; \
+	} >> index.html; \
+	echo '</div>' >> index.html; \
+	{ \
+		echo '<div class="rate-limit-report-container">'; \
+	    echo '<h2>Rate limit report</h2>'; \
+	    echo '<img src="$(RATE_LIMIT_REPORT_GRAPH_PNG_FILE)" alt="Rate limit report graph">'; \
+	    echo '</div>'; \
 	} >> index.html; \
 	echo '<div id="end_of_transmission">' >> index.html; \
 
@@ -350,3 +359,16 @@ get_error_ids_for_date:
 get_error_squares_for_date:
 	@condition="where problem_id in ($$(make -s get_error_ids_for_date DATE='$(DATE)' | paste -sd , -))"; \
 	$(MAKE) get_squares CONDITION="$$condition" | tr -d \\n
+
+
+.PHONY: $(RATE_LIMIT_REPORT_GRAPH_PNG_FILE)
+$(RATE_LIMIT_REPORT_GRAPH_PNG_FILE):
+	( \
+		cd .. \
+		&& ./venv/bin/python3.11 -c "\
+from rate_limiter_logger import RateLimiterLogger; \
+logger = RateLimiterLogger(); \
+logger.generate_report(); \
+			" \
+	)
+	cp ../rate_limiter_logs/report.png $@

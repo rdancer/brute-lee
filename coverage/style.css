@@ -154,3 +154,15 @@ body.screenshot-for-readme h1:after {
     font-style: italic;
     margin-bottom: -6px;
 }
+
+.rate-limit-report-container {
+    width: 100%;
+}
+.rate-limit-report-container img {
+    width: 100%;
+    height: auto;
+    outline: 1px solid black;
+}
+body.screenshot-for-readme .rate-limit-report-container {
+    display: none;
+}
