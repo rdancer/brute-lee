@@ -30,6 +30,7 @@ index.html: style.css update_database
 	rm -f index.html
 	cat index.html.in \
         | sed "s@Problem set progress@&<span class="hide-from-readme">: `make get_percentage_solved`</span>@"  \
+		| sed "s@data-last-updated@&='`date -R | cut -f-4 -d' '`'@" \
         >> index.html
 	{ \
 	    make get_squares; \

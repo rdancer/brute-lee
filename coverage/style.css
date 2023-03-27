@@ -144,3 +144,13 @@ body.screenshot-for-readme .square {
 .productivity-errors {
     display: inline-block;
 }
+
+body.screenshot-for-readme h1:after {
+    content: 'last updated: ' attr(data-last-updated);
+    width: 100vw;
+    display: inline-block;
+    font-size: 1ex;
+    font-weight: normal;
+    font-style: italic;
+    margin-bottom: -6px;
+}
