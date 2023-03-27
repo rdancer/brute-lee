@@ -6,6 +6,7 @@ import os
 import re
 import json
 from publisher import Publisher
+from rate_limiter_logger import RateLimiterLogger
 # from parser import JavaScriptParser
 
 ATTRIBUTION_STRING = 'Brute Lee <https://github.com/rdancer/brute-lee>'
@@ -25,6 +26,7 @@ class Solver:
         # We could load this dynamically, but alas...
         self.compressToBase64 = lzstring.LZString().compressToBase64
         self.problem_class = None
+        self.rate_limiter_logger = RateLimiterLogger()
 
     def _click_over_element(self, selector, page=None):
             if not page:
@@ -208,6 +210,7 @@ var buffer = [
             self._submit()
             if self._check_if_test_passed_or_solution_accepted() == "solution_accepted":
                 success_callback()
+                self.rate_limiter_logger.log_result(self.title, True, self.test_suite_size, self.test_suite_size)
                 print("Accepted! -- screenshot saved to screenshot.png")
                 self.page.screenshot(path="screenshot.png")
                 self.save_solution(permanently=True)
@@ -218,6 +221,7 @@ var buffer = [
                 if hasattr(self, "test_suite_size") and self.test_suite_size > 300:
                     raise Exception(f"Test suite size too large ({self.test_suite_size}), aborting.")
                 success_callback()
+                self.rate_limiter_logger.log_result(self.title, True, self.test_suite_size, self.pass_count)
                 self.saved_pass_count = self.pass_count
                 print(f"Tests passed: {self.pass_count} / {self.test_suite_size}")
                 result = self._get_result()
@@ -289,6 +293,7 @@ var buffer = [
         else:
             time.sleep(MINIMUM_SUBMISSION_INTERVAL)
         self.last_submission_time = time.time()
+        self.rate_limiter_logger.log_submission(self.title)
         self.page.evaluate("document.querySelector('button.bg-green-s').click()") # There is only one green button on the page smh
 
     def _check_if_test_passed_or_solution_accepted(self):

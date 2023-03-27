@@ -7,6 +7,7 @@ LOG = log.txt
 MASTER_LOG = MASTER_LOG.TXT
 URL_LIST_TXT = all_urls.txt
 
+PYTHON = ./venv/bin/python3.11
 
 .PHONY: today
 today:
@@ -18,6 +19,16 @@ today:
 .PHONY: clean
 clean:
 	rm -rf solution.txt
+	rm -rf solutions/*/JavaScript.js.SAVE
+	rm -rf $(LOG)
+	rm -rf screenshot.png
+
+.PHONY: mrproper
+mrproper: clean
+	rm -rf venv
+	rm -rf rate_limiter_logs
+	#rm -rf solutions
+	#rm -rf $(MASTER_LOG)
 
 
 .PHONY: solve
@@ -92,7 +103,7 @@ coverage:
 
 .PHONY: install
 install:
-	$(PYTHON) -m venv venv; \
+	python3.11 -m venv venv; \
 	source venv/bin/activate; \
 	$(PYTHON) -m pip install -r requirements.txt; \
 	playwright install # XXX this installs all the browsers, which is a lot of space, and we only need Chromium
@@ -108,3 +119,8 @@ continue_all:
 	    ln -s "$$save_file" solution.txt; \
 	    make continue && rm "$$save_file"; \
 	done
+
+
+.PHONY: test
+test:
+	$(PYTHON) test_rate_limiter_logger.py
