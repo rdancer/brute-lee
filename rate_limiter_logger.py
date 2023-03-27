@@ -10,6 +10,7 @@ from freezegun import freeze_time
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
 
+import time
 
 class RateLimiterLogger:
     """
@@ -130,7 +131,15 @@ class RateLimiterLogger:
         # Separate the data into different lists for plotting
         descriptions = [d[0] for d in data]
         timestamps = [mdates.date2num(datetime.strptime(d[1], "%Y-%m-%d %H:%M:%S")) for d in data]
-        success = [d[2] for d in data]
+        # Get the current time and convert it to the same format as the timestamps
+        current_time = mdates.date2num(datetime.now())
+        # NULL is a failed submission if more than 1 minute has passed since submission
+        success = [d[2] if d[2] is not None or (current_time - t) * 24 * 60 < 1 else 0 for d, t in zip(data, timestamps)]
+        failure = [
+    True if (d[2] is None and (current_time - t) * 24 * 60 > 1) or d[2] == False else None
+    for d, t in zip(data, timestamps)
+]
+        
         test_cases_passed = [d[3] for d in data]
 
         print (test_suite_size_dict)
@@ -177,8 +186,9 @@ class RateLimiterLogger:
             host.annotate(txt, (timestamps[i], test_suite_size[i] + 2), fontsize=8, rotation=0)
 
         # Plot unsuccessful submissions as red dots
-        unsucc_timestamps = [timestamps[i] for i, s in enumerate(success) if not s]
-        unsucc_test_cases_passed = [test_cases_passed[i] for i, s in enumerate(success) if not s]
+        unsucc_timestamps = [timestamps[i] for i, f in enumerate(failure) if f]
+        unsucc_test_cases_passed = [test_cases_passed[i] if test_cases_passed[i] else 0 for i, f in enumerate(failure) if f]
+        print (unsucc_timestamps, unsucc_test_cases_passed)
         host.plot(unsucc_timestamps, unsucc_test_cases_passed, 'ro', label='Unsuccessful Submissions')
 
         # Format the x-axis with date-time labels
