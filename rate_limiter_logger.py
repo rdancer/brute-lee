@@ -140,7 +140,22 @@ class RateLimiterLogger:
         # Create a figure and axis
         fig, ax = plt.subplots(figsize=(14, 6), dpi=100)
 
-        host = ax # XXX for now while we're merging, let this be the host, so we don't get distracted by diffs that are merely the rename of this variable
+        # Create three separate Y-axes
+        host = host_subplot(111, axes_class=AA.Axes)
+        plt.subplots_adjust(right=0.75)
+        ax3 = host.twinx()
+        ax4 = host.twinx()
+        ax5 = host.twinx()
+        offset = 60
+        new_fixed_axis = ax4.get_grid_helper().new_fixed_axis
+        ax3.axis["right"] = new_fixed_axis(loc="right", axes=ax3, offset=(0 * offset, 0))
+        ax3.axis["right"].toggle(all=True)
+
+        ax4.axis["right"] = new_fixed_axis(loc="right", axes=ax4, offset=(1 * offset, 0))
+        ax4.axis["right"].toggle(all=True)
+
+        ax5.axis["right"] = new_fixed_axis(loc="right", axes=ax5, offset=(2 * offset, 0))
+        ax5.axis["right"].toggle(all=True)
 
         # Plot the test suite size and progress towards it
         host.fill_between(timestamps, test_suite_size, color='yellow', alpha=0.3, label='Test Suite Size')
@@ -176,6 +191,63 @@ class RateLimiterLogger:
         host.set_xlabel('Time')
         host.set_ylabel('Test Cases')
         host.legend(loc='upper left')
+
+        #
+        # Plot the rate-limited gaps as well as the duration since the last submission
+        #
+
+        # Calculate the duration since the last successful submission
+        last_successful = None
+        duration_since_last_successful_submission = []
+        for i, s in enumerate(success):
+            if s:
+                if last_successful is None:
+                    duration = 0
+                else:
+                    duration = (timestamps[i] - last_successful) * 24 * 60 * 60
+                last_successful = timestamps[i]
+            else:
+                duration = None
+            duration_since_last_successful_submission.append(duration)
+        
+        # Separate the durations into the required scales
+        duration_lt_20s = [d if d is not None and d < 20 else None for d in duration_since_last_successful_submission]
+        duration_20s_to_50m = [d if d is not None and 20 <= d < 50 * 60 else None for d in duration_since_last_successful_submission]
+        duration_gt_50m = [d if d is not None and d >= 50 * 60 else None for d in duration_since_last_successful_submission]
+        
+        # Plot the durations
+        # XXX the <20s is missing, because in the original source it was painting straight over `host`
+        ax3.scatter(timestamps, duration_lt_20s, facecolors='none', edgecolors='purple', label='Duration < 20s')
+        ax4.scatter(timestamps, duration_20s_to_50m, facecolors='none', edgecolors='orange', label='Duration 20s - 50min')
+        ax5.scatter(timestamps, duration_gt_50m, facecolors='none', edgecolors='red', label='Duration > 50min')
+
+        # Annotate durations and set labels
+        for i, d in enumerate(duration_20s_to_50m):
+            if d is not None:
+                ax4.annotate(f'{int(d // 60)}:{int(d % 60):02d}', (timestamps[i], d), fontsize=8, rotation=0, color='orange')
+        for i, d in enumerate(duration_gt_50m):
+            if d is not None:
+                ax5.annotate(f'{int(d // 3600)}:{int(d % 3600):02d}', (timestamps[i], d), fontsize=8, rotation=0, color='red')
+        
+        # Set Y-axis labels
+        ax3.set_ylabel('Duration since last successful submission (<20s)')
+        ax4.set_ylabel('Duration since last successful submission (20s-50min)')
+        ax5.set_ylabel('Duration since last successful submission (>50min)')
+
+        # Set Y-axis limits
+        ax3.set_ylim(0, 20) # seconds
+        actual_durations = [0] + [d for d in filter(None, duration_20s_to_50m)] # XXX this should be minutes
+        ax4.set_ylim(min(actual_durations), max(actual_durations))
+        actual_durations = [0] + [d for d in filter(None, duration_gt_50m)] # XXX this should be hours
+        ax5.set_ylim(min(actual_durations), max(actual_durations))
+
+        # Add labels and legend
+        # ax3.plot([], [], 'o', color='purple', label='Duration < 20s')
+        # ax4.plot([], [], 'o', color='orange', label='Duration 20s - 50min')
+        # ax5.plot([], [], 'o', color='red', label='Duration > 50min')
+        ax3.legend(loc='upper right', frameon=False)
+        ax4.legend(loc='upper right', bbox_to_anchor=(1.0, 0.96), frameon=False)
+        ax5.legend(loc='upper right', bbox_to_anchor=(1.0, 0.92), frameon=False)
 
         #
         # Save the plot to an image
