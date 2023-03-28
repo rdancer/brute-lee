@@ -1,0 +1,15 @@
+/*
+ * language: JavaScript
+ * problem: 1887. Reduction Operations to Make the Array Elements Equal
+ * link: https://leetcode.com/problems/reduction-operations-to-make-the-array-elements-equal/
+ * author: Brute Lee <https://github.com/rdancer/brute-lee>
+ */
+testNumber = 0;
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var reductionOperations = function(nums) {
+  return [3,0,4,0,45,45,0,1,45,45,1,9,55,0,1,55,55,1,10,33252,58898,64439,1596,91003,45844,9316,78606,1326,55,27261,2556,59441,118593,120801,53921,89105,4656,17578,29161,650398,7267734,11448927,10605049,2267632,3173932,6265339,5104406,5262358,5529893,6484833,11304806,9165162,2403217,266619,7759987,7674416,527440,2310588,4115134,43788306,127774406,342498782,410473842,507704815,789593895,788493095,791115153,789119869,787798936,0,1249975000,0,49999,1249975000,1249975000,1,49999,1249975000,
+      ][testNumber++];  
+};
