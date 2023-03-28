@@ -191,7 +191,7 @@ class RateLimiterLogger:
             # ... but if the last data point already has this same annotation, don't add it again
             if i > 0 and txt == descriptions[i - 1]:
                 continue
-            host.annotate(txt, (timestamps[i], test_suite_size[i] + 2), fontsize=8, rotation=90)
+            host.annotate(txt, (timestamps[i], 0), fontsize=8, rotation=90)
 
         # Plot unsuccessful submissions as red dots
         unsucc_timestamps = [timestamps[i] for i, f in enumerate(failure) if f]
@@ -260,7 +260,7 @@ class RateLimiterLogger:
             if d is not None:
                 print(f'Timestamp: {t}, run of successes: {s}, is > 50min: {d}')
                 ax5.annotate(f'{s}', (t, d), fontsize=8, rotation=0, color='red')
-        
+
 
         # Annotate durations and set labels
         for i, d in enumerate(duration_20s_to_50m):
