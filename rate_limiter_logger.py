@@ -175,7 +175,7 @@ class RateLimiterLogger:
         ax5.axis["right"].toggle(all=True)
 
         # Plot the test suite size and progress towards it
-        host.fill_between(timestamps, test_suite_size, color='yellow', alpha=0.3, label='Test Suite Size')
+        host.fill_between(timestamps, [size or 0 for size in test_suite_size], color='yellow', alpha=0.3, label='Test Suite Size')
 
         for i, (t, s, p, ts, desc) in enumerate(zip(timestamps, success, test_cases_passed, test_suite_size, descriptions)):
             if s:
