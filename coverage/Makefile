@@ -10,7 +10,7 @@ PYTHON = ../venv/bin/python3.11
 update_database: $(DATABASE)
 	test -f $(DATABASE) || { echo 'The `make database` command must be run first' >&2; exit 1; }
 	find $(SOLUTIONS_PATH) -type f \
-	| grep -v -e [A-Z]$$ -e '\.log$$' -e _all_solved \
+	| grep -v -e [A-Z]$$ -e '\.log$$' -e /_ \
 	| sed 's@.*solutions/*@@' \
 	| grep ^[0-9] \
 	| sort -n \
