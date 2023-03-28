@@ -45,7 +45,8 @@ index.html: style.css update_database $(RATE_LIMIT_REPORT_GRAPH_PNG_FILE)
 	    done; \
 	} \
 	| sort -nr \
-	| awk '{ printf "%-10s: %4d\n", $$2, $$1 }' \
+	| awk '{ printf "%4d %s\n", $$1, $$2 }' \
+	| sed 's@MS_SQL_Server@MS SQL Server@' \
 	>> index.html; \
 	echo '</pre>' >> index.html
 	{ \
@@ -99,7 +100,7 @@ get_db_columns:
 get_table_headings:
 	@echo -n '|problem|solutions|'
 	@make get_db_columns \
-	| sed 's@_sharp@#@;s@_plus@+@g' \
+	| sed 's@_sharp@#@; s@_plus@+@g; s@MS_SQL_Server@MS SQL Server@;' \
 	|  tr '\n' '|' \
 	| sed 's@|$$@@'
 	@echo '|'
@@ -122,7 +123,7 @@ get_percentage_solved:
 
 .PHONY: create_database
 create_database:
-	$(SQLITE) 'create table coverage(problem_id int primary key, count int, error text, C_sharp text, C_plus_plus text, C text, Dart text, Erlang text, Elixir text, Go text, Java text, Kotlin text, PHP text, Python text, Python3 text, Racket text, Ruby text, Rust text, Scala text, Swift text, TypeScript text, JavaScript text, Bash text)'
+	$(SQLITE) 'create table coverage(problem_id int primary key, count int, error text, C_sharp text, C_plus_plus text, C text, Dart text, Erlang text, Elixir text, Go text, Java text, Kotlin text, PHP text, Python text, Python3 text, Racket text, Ruby text, Rust text, Scala text, Swift text, TypeScript text, JavaScript text, Bash text, MySQL text, MS_SQL_Server text, Oracle text )'
 	make git_ignore_generated_files
 
 .PHONY: insert_a_row_for_every_problem
@@ -282,7 +283,7 @@ publish_to_github: index.html $(SCREENSHOT_FILE)
 	{ \
 	    make get_db_columns \
 	    | while read language; do \
-		echo $$($(SQLITE) "select count($$language) from coverage") $$(echo "$$language" | sed 's@_sharp@#@;s@_plus@+@g'); \
+		echo $$($(SQLITE) "select count($$language) from coverage") $$(echo "$$language" | sed 's@_sharp@#@; s@_plus@+@g; s@MS_SQL_Server@MS SQL Server@;'); \
 	    done; \
 	} \
 	| sort -nr \
