@@ -346,12 +346,15 @@ var buffer = [
         self.page.evaluate("document.querySelectorAll('" + language_dropdown + "')[0].click()")
         language_option = 'li .whitespace-nowrap'
         self.page.wait_for_selector(language_option)
-        self.page.evaluate("Array.from(document.querySelectorAll('"
-                + language_option
-                + f"')).filter(x => x.innerText.match(/{self.language}/))[0].click()")
-        # Wait a wee bit to allow the modal dialogue to close
-        time.sleep(2)
-
+        try:
+            self.page.evaluate("Array.from(document.querySelectorAll('"
+                    + language_option
+                    + f"')).filter(x => x.innerText.match(/{self.language}/))[0].click()")
+            # Wait a wee bit to allow the modal dialogue to close
+            time.sleep(2)
+        except Exception as e:
+            available_languages = self.page.evaluate('Array.from(document.querySelectorAll(\'' + language_option + '\')).map(x => x.innerText)')
+            raise Exception(f"Could not select language, because {self.language} is not available for this problem.\nAvailable languages: {available_languages}\nURL: {self.problem_url}\nDescription: {self.title}") from e
         # Reset the code to the default state
         # XXX sometimes we still get a frozen page where no interaction is possible.
         # The symptom is that we select everything on the page instead of just text in the editor.

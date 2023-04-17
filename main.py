@@ -1,5 +1,6 @@
 #!/usr/bin/env python3 -u
 
+import shutil
 import signal
 import threading
 import time
@@ -159,6 +160,25 @@ try:
                 print("Leetcode website had an oopsie. Reloading page and trying again.")
                 page.reload()
                 continue
+            # if the exception e's text contains both "Could not select language" and "SQL", then...
+            elif "Could not select language" in str(e):
+                error_number = int(str(e).split("Description: ")[1].split(".")[0])
+                try:
+                    os.mkdir(f"solutions/{error_number}")
+                except FileExistsError:
+                    pass
+                if "MySQL" in str(e):
+                    print("SQL is not implemented yet, file it as SQL_NOT_IMPLEMENTED_YET error and exit.")
+                    # the e's text contains "Description: <number>. ", so we can extract the number
+                    with open(f"solutions/{error_number}/MySQL.error.ERROR_SQL_NOT_IMPLEMENTED_YET", "w") as f:
+                        f.write(str(e))
+                    shutil.copy("screenshot.png", f"solutions/{error_number}/MySQL.screenshot.ERROR_SQL_NOT_IMPLEMENTED_YET.PNG")
+                else:
+                    print("This problem cannot be solved in JavaScript (multithread?), file it as CANNOT_BE_SOLVED_IN_JAVASCRIPT error and exit.")
+                    with open(f"solutions/{error_number}/C.error.ERROR_CANNOT_BE_SOLVED_IN_JAVASCRIPT") as f:
+                        f.write(str(e))
+                    shutil.copy("screenshot.png", f"solutions/{error_number}/C.screenshot.ERROR_CANNOT_BE_SOLVED_IN_JAVASCRIPT.PNG")
+                exit(1)
             else:
                 print("Unknown error. Screenshot saved to screenshot.png")
             raise e
