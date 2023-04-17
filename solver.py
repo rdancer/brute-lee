@@ -131,10 +131,12 @@ class Solver:
     def maybe_change_source_code_for_oo(self):
         if "object will be instantiated and called as such" in self.solution_text:
             out = []
+            maybe_return = ""
             for line in self.solution_text.split('\n'):
                 out.append(line)
                 if " function(" in line:
-                    out.append("  return mySolution()")
+                    out.append(f"  {maybe_return}mySolution()")
+                    maybe_return = "return "
                 elif " * link: " in line:
                     out.append(" * note: object-oriented, flat")
 
@@ -505,12 +507,12 @@ var buffer = [
             if "  return " in lines[i]:
                 lines = lines[:i]
                 break
-        lines.append("  if (typeof compressed_buffer[testNumber] === \"undefined\") return undefined;")
-        lines.append("  return JSON.parse(LZString.decompressFromBase64(compressed_buffer[testNumber++]))")
+        lines.append("  return buffer[testNumber++]")
         lines.append("};")
         lines.append(lzstring_code)
-        lines.append(f"var compressed_buffer = {chomped_array},") # note the trailing comma
-        lines.append("];")
+        lines.append("var decompress = s => JSON.parse(LZString.decompressFromBase64(s))")
+        lines.append(f"var buffer = {chomped_array},") # note the trailing comma
+        lines.append("].map(x => typeof x === 'undefined' ? undefined : decompress(x)).flat();")
         for line in lines:
             print ("[DEBUG] lines:", str(line[:40]) + "..." + str(line[-40:]) if len(line) > 80 else line)
         js_code = "\n".join(lines) + "\n"
