@@ -477,6 +477,8 @@ var buffer = [
             # Parse the return value as JavaScript code
             print ("About to JSON-parse the return value:", return_value)
             js_value = json.loads(return_value)
+            if self.is_compressed():
+                js_value = [self.decompressFromBase64(x) for x in js_value]
         # Serialize the parsed value as a JSON string
         json_string = json.dumps(js_value)
         # Save the JSON string to a file if a filename is supplied
