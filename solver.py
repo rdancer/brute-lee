@@ -7,6 +7,7 @@ import re
 import json
 from publisher import Publisher
 from rate_limiter_logger import RateLimiterLogger
+import playwright
 # from parser import JavaScriptParser
 
 ATTRIBUTION_STRING = 'Brute Lee <https://github.com/rdancer/brute-lee>'
@@ -27,6 +28,7 @@ class Solver:
         self.compressToBase64 = lzstring.LZString().compressToBase64
         self.problem_class = None
         self.rate_limiter_logger = RateLimiterLogger()
+        self.expected_result_is_unquoted_string = False
 
     def _click_over_element(self, selector, page=None):
             if not page:
@@ -89,11 +91,16 @@ class Solver:
         # If save file exists, load it instead of the template
         try:
             with open(SAVE_FILE, 'r') as f:
-                template = f.read()
-                self._init_template(template)
+                self._init_template(f.read())
                 return
         except FileNotFoundError:
-            pass
+            try:
+                problem_number = self.title.split('.')[0]
+                with open(f"templates/{problem_number}/{self.language}.js", 'r') as f:
+                    self._init_template(f.read())
+                    return
+            except FileNotFoundError:
+                pass
 
         self._select_all_text()
 
@@ -210,24 +217,40 @@ var buffer = [
         print("Let's go!")
         while True:
             self._submit()
-            if self._check_if_test_passed_or_solution_accepted() == "solution_accepted":
-                success_callback()
-                self.rate_limiter_logger.log_result(self.title, True, self.test_suite_size, self.test_suite_size)
-                print("Accepted! -- screenshot saved to screenshot.png")
-                self.page.screenshot(path="screenshot.png")
-                self.save_solution(permanently=True)
-                return
-            else:
-                if hasattr(self, "pass_count") and hasattr(self, "saved_pass_count") and self.pass_count != self.saved_pass_count + 1:
-                    raise Exception("Something went wrong, the number of passed tests is not increasing")
-                if hasattr(self, "test_suite_size") and self.test_suite_size > 300:
-                    raise Exception(f"Test suite size too large ({self.test_suite_size}), aborting.")
-                success_callback()
-                self.rate_limiter_logger.log_result(self.title, True, self.test_suite_size, self.pass_count)
-                self.saved_pass_count = self.pass_count
-                print(f"Tests passed: {self.pass_count} / {self.test_suite_size}")
-                result = self._get_result()
-                self._append_result(result)
+            try:
+                if self._check_if_test_passed_or_solution_accepted() == "solution_accepted":
+                    success_callback()
+                    self.rate_limiter_logger.log_result(self.title, True, self.test_suite_size, self.test_suite_size)
+                    print("Accepted! -- screenshot saved to screenshot.png")
+                    self.page.screenshot(path="screenshot.png")
+                    self.save_solution(permanently=True)
+                    return
+                else:
+                    if hasattr(self, "pass_count") and hasattr(self, "saved_pass_count") and self.pass_count != self.saved_pass_count + 1:
+                        raise Exception("Something went wrong, the number of passed tests is not increasing")
+                    if hasattr(self, "test_suite_size") and self.test_suite_size > 1000:
+                        raise Exception(f"Test suite size too large ({self.test_suite_size}), aborting.")
+                    success_callback()
+                    self.rate_limiter_logger.log_result(self.title, True, self.test_suite_size, self.pass_count)
+                    self.saved_pass_count = self.pass_count
+                    print(f"Tests passed: {self.pass_count} / {self.test_suite_size}")
+                    result = self._get_result()
+                    self._append_result(result)
+            except playwright._impl._api_types.TimeoutError as e:
+                if "TypeError: Cannot read properties of undefined (reading 'toString')" in self.get_red_error_message():
+                    print("This looks like the Expected Solution is a bare string, re-trying...")
+                    # self._add_note("expected_result_is_unquoted_string") # XXX TODO Note implemented
+                    self.expected_result_is_unquoted_string = True
+                    self._reset_solution()
+                    continue
+                else:
+                    raise e
+
+    def get_red_error_message(self):
+        try:
+            return self.page.eval_on_selector(".contents.text-red-4", "el => el.parentElement.innerText")
+        except:
+            return ""
 
     def get_solution_text(self):
         # Get the whole solution via the clipboard
@@ -323,23 +346,14 @@ var buffer = [
         # if the last three chars are "...", then the result has been truncated, and we need to get the full result
         if result[-3:] == "..." or result[-8:] == "View all":
             result = self._get_result_full_and_unabreviated()
-        if self._result_ought_to_be_a_string(result):
-            result = '"' + result + '"'
+        if self._expected_result_is_unquoted_string():
+            result = '"' + result.replace("\\", "\\\\").replace('"', '\\"') + '"'
         return result # as a string
 
-    def _result_ought_to_be_a_string(self, result):
-        return False # XXX disabled for now, because it is buggy
-        """Check if the result ought to be a string."""
-        code_snippet = f"return {result};"
-        is_valid_js, error = JavaScriptParser().is_valid_js(code_snippet)
-        if is_valid_js:
-            return False
-        else:
-            is_valid_js, _ = JavaScriptParser().is_valid_js(f"return \"{result}\";")
-            if is_valid_js:
-                return True
-            else:
-                raise Exception(f"Result is not valid JS, and it is not a string. Result: {result}, error: {error}")
+    def _expected_result_is_unquoted_string(self):
+        if "* note: expected_result_is_unquoted_string" in self.solution_text:
+            self.expected_result_is_unquoted_string = True
+        return self.expected_result_is_unquoted_string
 
     def _reset_solution(self):
         # Select language
