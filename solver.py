@@ -122,8 +122,33 @@ class Solver:
 
         # Handle various special problem classes
         self._determine_problem_class()
+        print("Problem class:", self.problem_class)
         if self.problem_class == "object-oriented":
             self.maybe_change_source_code_for_oo()
+        elif self.problem_class == "binary-tree":
+            self.maybe_change_source_code_for_binary_tree()
+        elif self.problem_class == "doubly-linked-list":
+            # This will probably work for a singly-linked list too
+            self._change_source_code("doubly_linked_list", """doublyLinkedListify(arr) {
+    if (typeof arr === "undefined") return new Node("sentinel") /* fixes: number of tests passed is not increasing */
+    if (!arr || arr.length === 0) return null
+    arr.forEach((_, i) => arr[i] = new Node(arr[i]))
+    arr.forEach((_, i) =>  {
+      arr[i].prev = i === 0 ? null : arr[i-1]
+      arr[i].next = i === arr.length - 1 ? null : arr[i+1]
+    })
+    return arr[0]
+}""")
+        elif self.problem_class == "singly-linked-list":
+            self._change_source_code("singly_linked_list", """singlyLinkedListify(arr) {
+    if (typeof arr === "undefined") return new ListNode("sentinel") /* fixes: number of tests passed is not increasing */
+    if (!arr || arr.length === 0) return null
+    for (let i = arr.length - 1; i >= 0; i--) {
+        arr[i] = new ListNode(arr[i], arr[i+1] || null)
+    }
+    return arr[0]
+}""")
+
         else: # normal problem
             # Insert inside the existing function definition
             # Note: sometimes we have more than one function definition (because helper classes), so we just go to the very bottom and then arrow up, to get inside the last function definition.
@@ -137,12 +162,12 @@ class Solver:
     def maybe_change_source_code_for_oo(self):
         if "object will be instantiated and called as such" in self.solution_text:
             out = []
-            maybe_return = ""
+            virgin = True
             for line in self.solution_text.split('\n'):
                 out.append(line)
                 if " function(" in line:
-                    out.append(f"  {maybe_return}mySolution()")
-                    maybe_return = "return "
+                    out.append(f"  {'return ' if not virgin else ''}mySolution()")
+                    virgin = False
                 elif " * link: " in line:
                     out.append(" * note: object-oriented, flat")
 
@@ -161,6 +186,40 @@ var buffer = [
                 pyperclip.copy(self.solution_text)
                 self._clipboardPaste()
 
+    def maybe_change_source_code_for_binary_tree(self):
+        if "Definition for a binary tree node" in self.solution_text and not "* note: binary_tree" in self.solution_text:
+            self._change_source_code("binary_tree", """binaryTreeify(arr) {
+    if (!arr || arr.length === 0) return null
+    for (let i = arr.length - 1; i >= 0; i--) {
+    const val = arr[i]
+    if (val === null) continue
+    arr[i] = new TreeNode(val, arr[2*i+1], arr[2*i+2])
+    }
+    return arr[0]
+    }""")
+
+    def _change_source_code(self, tag, replacement):
+        out = []
+        for line in self.solution_text.split('\n'):
+            out.append(line)
+            if " * link: " in line:
+                out.append(f" * note: {tag}")
+
+        out = out[:-1] # remove the last line, which is the closing bracket
+        s = "\n".join(out)
+        s += f"""
+return {replacement.split('(')[0]}(buffer[testNumber++]);
+}};
+function {replacement}
+var buffer = [
+["sentinel"]]
+"""
+        self.solution_text = s
+        self._select_all_text()
+        with saved_clipboard():
+            pyperclip.copy(self.solution_text)
+            self._clipboardPaste()
+
     def _determine_problem_class(self):
         """
         Determines the problem class / solution class
@@ -175,7 +234,12 @@ var buffer = [
             self.solution_text = pyperclip.paste()
         if "object will be instantiated and called as such" in self.solution_text:
             self.problem_class = "object-oriented"
-
+        elif "Definition for a binary tree node" in self.solution_text:
+            self.problem_class = "binary-tree"
+        elif "Definition for a Node" in self.solution_text and "this.next = next" in self.solution_text:
+            self.problem_class = "doubly-linked-list"
+        elif "Definition for singly-linked list" in self.solution_text:
+            self.problem_class = "singly-linked-list"
 
     def solve(self, page, problem_url, success_callback, language="JavaScript"):
         self.page = page
@@ -517,18 +581,24 @@ var buffer = [
         compressed_array = [self.compressToBase64(json.dumps(x)) for x in return_value]
         chomped_array = str(compressed_array).rstrip(']')
         lines = js_code.split('\n')
-        # remove the last return statement and everything after it
-        # the return statement is the last line that contains the word "return"
-        for i in range(len(lines)-1, -1, -1):
-            if "  return " in lines[i]:
-                lines = lines[:i]
-                break
-        lines.append("  return buffer[testNumber++]")
-        lines.append("};")
+        if "* note: binary_tree" in js_code:
+            for i in range(len(lines)-1, -1, -1):
+                if "var buffer = [" in lines[i]:
+                    lines = lines[:i]
+                    break
+        else:
+            # remove the last return statement and everything after it
+            # the return statement is the last line that contains the word "return"
+            for i in range(len(lines)-1, -1, -1):
+                if "  return " in lines[i]:
+                    lines = lines[:i]
+                    break
+            lines.append("  return buffer[testNumber++]")
+            lines.append("};")
         lines.append(lzstring_code)
         lines.append("var decompress = s => JSON.parse(LZString.decompressFromBase64(s))")
         lines.append(f"var buffer = {chomped_array},") # note the trailing comma
-        lines.append("].map(x => typeof x === 'undefined' ? undefined : decompress(x)).flat();")
+        lines.append(f"].map(x => typeof x === 'undefined' ? undefined : decompress(x)){'.flat()' if '.flat()' in js_code else ''};")
         for line in lines:
             print ("[DEBUG] lines:", str(line[:40]) + "..." + str(line[-40:]) if len(line) > 80 else line)
         js_code = "\n".join(lines) + "\n"
