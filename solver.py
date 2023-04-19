@@ -304,7 +304,7 @@ var buffer = [
         self.solution_text = self.get_solution_text()
         if len(self.solution_text) > 95_000:
             if self.is_compressed():
-                print(f"The solution is too big although it is already compressed: {str(len(self.solution_text) / 1000)} kB, proceeding anyway...")
+                print(f"The solution is too big although it is already compressed: {len(self.solution_text) / 1000:.1f} kB, proceeding anyway...")
                 self.save_solution(permanently=True, error="TOO_BIG_EVEN_THOUGH_COMPRESSED")
             else:
                 self.convert_to_compressed()
@@ -322,6 +322,7 @@ var buffer = [
 
     def _check_if_test_passed_or_solution_accepted(self):
         """Check if the solution was accepted."""
+        print (f"Solution size: {len(self.solution_text) / 1000:.1f} kB")
         print ("Waiting for test results...", end="", flush=True)
         self.page.wait_for_selector(f"{TEST_PASS_SELECTOR}, {SOLUTION_ACCEPTED_SELECTOR}")
         print("done.")
