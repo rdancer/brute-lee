@@ -128,15 +128,15 @@ try:
             print("Failed to solve the problem.")
             page.screenshot(path='screenshot.png')
             try:
-                maybe_error_message = page.eval_on_selector(".contents.text-red-4", "el => el.parentElement.innerText")
+                red_error_message = page.eval_on_selector(".contents.text-red-4", "el => el.parentElement.innerText")
             except:
-                maybe_error_message = ""
-            if maybe_error_message:
-                print(f"Received red error message: \"{maybe_error_message}\"")
+                red_error_message = ""
+            if red_error_message:
+                print(f"Received red error message: \"{red_error_message}\"")
             # if the page contains one of these error messages, react accordingly
             # if it contains the "You have attempted to run code too soon." message, wait 1 hour and try again
             # find if the error message contains the string "You have attempted to run code too soon."
-            if "You have attempted to run code too soon." in maybe_error_message:
+            if "You have attempted to run code too soon." in red_error_message:
                 timeout = 3600
                 print("Waiting {} hour{} before submitting again...".format(timeout / 3600, "s" if timeout > 3600 else ""))
                 for seconds in range(timeout):
@@ -150,7 +150,7 @@ try:
                 print("... Timer finished. Trying again.")
                 continue
             # if it contains "Please try reloading the page.", reload the page and try again
-            elif "Unknown network error. Please try reloading page." in maybe_error_message:
+            elif "Unknown network error. Please try reloading page." in red_error_message:
                 # check if the solution.txt is too large
                 if network_error_count > 0 and os.path.getsize("solution.txt") > 95 * 1024: # leave 5k for message overhead
                     raise Exception("Solution size exceeded ({}kB), aborting.".format(os.path.getsize("solution.txt") // 1024))
