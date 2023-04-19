@@ -29,6 +29,7 @@ class Solver:
         self.problem_class = None
         self.rate_limiter_logger = RateLimiterLogger()
         self.expected_result_is_unquoted_string = False
+        self.test_suite_size = None
 
     def _click_over_element(self, selector, page=None):
             if not page:
@@ -106,8 +107,6 @@ class Solver:
 
         # Insert before everything else
         self.page.keyboard.press('ArrowLeft')
-        pass_count = (self.pass_count + 1) if hasattr(self, "pass_count") else 0
-        test_suite_size = self.test_suite_size if hasattr(self, "test_suite_size") else "?"
         comment_header = f"""/*
  * language: {self.language}
  * problem: {self.title}
@@ -220,7 +219,7 @@ var buffer = [
             try:
                 if self._check_if_test_passed_or_solution_accepted() == "solution_accepted":
                     success_callback()
-                    self.rate_limiter_logger.log_result(self.title, True, self.test_suite_size, self.test_suite_size)
+                    self.rate_limiter_logger.log_result(self.title, True, self.test_suite_size, self.test_suite_size) # Pass count is the same as test suite size, because we have just passed all the tests
                     print("Accepted! -- screenshot saved to screenshot.png")
                     self.page.screenshot(path="screenshot.png")
                     self.save_solution(permanently=True)
@@ -228,7 +227,7 @@ var buffer = [
                 else:
                     if hasattr(self, "pass_count") and hasattr(self, "saved_pass_count") and self.pass_count != self.saved_pass_count + 1:
                         raise Exception("Something went wrong, the number of passed tests is not increasing")
-                    if hasattr(self, "test_suite_size") and self.test_suite_size > 1000:
+                    if self.test_suite_size > 1000:
                         raise Exception(f"Test suite size too large ({self.test_suite_size}), aborting.")
                     success_callback()
                     self.rate_limiter_logger.log_result(self.title, True, self.test_suite_size, self.pass_count)
