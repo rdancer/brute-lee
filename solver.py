@@ -126,11 +126,38 @@ class Solver:
         if self.problem_class == "object-oriented":
             self.maybe_change_source_code_for_oo()
         elif self.problem_class == "binary-tree":
-            self.maybe_change_source_code_for_binary_tree()
+            self._change_source_code("binary_tree", """binaryTreeify(arr) {
+    if (typeof arr === "undefined") return new TreeNode("sentinel") /* fixes: number of passed tests is not increasing */
+    if (!arr || arr.length === 0) return null
+    for (let i = arr.length - 1; i >= 0; i--) {
+      const val = arr[i]
+      if (val === null) continue
+      arr[i] = new TreeNode(val, arr[2*i+1], arr[2*i+2])
+    }
+    return arr[0]
+}""")
+        elif self.problem_class == "quad-tree":
+            self._change_source_code("quad_tree", """quadTreeify(arr) {
+    if (typeof arr === "undefined") return new Node("sentinel") /* fixes: number of passed tests is not increasing */
+    if (!arr || arr.length === 0) return null
+    for (let i = arr.length - 1; i >= 0; i--) {
+      if (arr[i] === null) continue
+      const [isLeaf, val] = arr[i]
+      arr[i] = new Node(
+        val,
+        isLeaf,
+        arr[4*i+1],
+        arr[4*i+2],
+        arr[4*i+3],
+        arr[4*i+4]
+      )
+    }
+    return arr[0]
+}""")
         elif self.problem_class == "doubly-linked-list":
             # This will probably work for a singly-linked list too
             self._change_source_code("doubly_linked_list", """doublyLinkedListify(arr) {
-    if (typeof arr === "undefined") return new Node("sentinel") /* fixes: number of tests passed is not increasing */
+    if (typeof arr === "undefined") return new Node("sentinel") /* fixes: number of passed tests is not increasing */
     if (!arr || arr.length === 0) return null
     arr.forEach((_, i) => arr[i] = new Node(arr[i]))
     arr.forEach((_, i) =>  {
@@ -141,13 +168,28 @@ class Solver:
 }""")
         elif self.problem_class == "singly-linked-list":
             self._change_source_code("singly_linked_list", """singlyLinkedListify(arr) {
-    if (typeof arr === "undefined") return new ListNode("sentinel") /* fixes: number of tests passed is not increasing */
+    if (typeof arr === "undefined") return new ListNode("sentinel") /* fixes: number of passed tests is not increasing */
     if (!arr || arr.length === 0) return null
     for (let i = arr.length - 1; i >= 0; i--) {
         arr[i] = new ListNode(arr[i], arr[i+1] || null)
     }
     return arr[0]
 }""")
+        elif self.problem_class == "modify-in-place":
+            self._change_source_code("modify_in_place", """modifyInPlace(src, dst) {
+  let value
+  for (let row = 0; row < dst.length; row++) {
+    for (let column = 0; column < dst[row].length; column++) {
+      try {
+        value = src[row][column]
+      } catch {
+        /* No solution for this test case yet */
+        value = "sentinel"
+      }
+      dst[row][column] = value
+    }
+  }
+}""", "board")
 
         else: # normal problem
             # Insert inside the existing function definition
@@ -186,19 +228,7 @@ var buffer = [
                 pyperclip.copy(self.solution_text)
                 self._clipboardPaste()
 
-    def maybe_change_source_code_for_binary_tree(self):
-        if "Definition for a binary tree node" in self.solution_text and not "* note: binary_tree" in self.solution_text:
-            self._change_source_code("binary_tree", """binaryTreeify(arr) {
-    if (!arr || arr.length === 0) return null
-    for (let i = arr.length - 1; i >= 0; i--) {
-    const val = arr[i]
-    if (val === null) continue
-    arr[i] = new TreeNode(val, arr[2*i+1], arr[2*i+2])
-    }
-    return arr[0]
-    }""")
-
-    def _change_source_code(self, tag, replacement):
+    def _change_source_code(self, tag, replacement, additional_arguments=""):
         out = []
         for line in self.solution_text.split('\n'):
             out.append(line)
@@ -208,7 +238,7 @@ var buffer = [
         out = out[:-1] # remove the last line, which is the closing bracket
         s = "\n".join(out)
         s += f"""
-return {replacement.split('(')[0]}(buffer[testNumber++]);
+return {replacement.split('(')[0]}(buffer[testNumber++]{', ' + additional_arguments if additional_arguments else ''});
 }};
 function {replacement}
 var buffer = [
@@ -240,6 +270,10 @@ var buffer = [
             self.problem_class = "doubly-linked-list"
         elif "Definition for singly-linked list" in self.solution_text:
             self.problem_class = "singly-linked-list"
+        elif "@return {void} Do not return anything, modify " in self.solution_text and " in-place instead." in self.solution_text:
+            self.problem_class = "modify-in-place"
+        elif "Definition for a QuadTree node" in self.solution_text:
+            self.problem_class = "quad-tree"
 
     def solve(self, page, problem_url, success_callback, language="JavaScript"):
         self.page = page
