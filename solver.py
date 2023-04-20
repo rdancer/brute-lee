@@ -126,16 +126,12 @@ class Solver:
         if self.problem_class == "object-oriented":
             self.maybe_change_source_code_for_oo()
         elif self.problem_class == "binary-tree":
+            # Our implementation of binaryTreeify() is buggy, so we use the LeetCode's internal one
             self._change_source_code("binary_tree", """binaryTreeify(arr) {
-    if (typeof arr === "undefined") return new TreeNode("sentinel") /* fixes: number of passed tests is not increasing */
-    if (!arr || arr.length === 0) return null
-    for (let i = arr.length - 1; i >= 0; i--) {
-      const val = arr[i]
-      if (val === null) continue
-      arr[i] = new TreeNode(val, arr[2*i+1], arr[2*i+2])
-    }
-    return arr[0]
-}""")
+  if (typeof arr === "undefined") return new TreeNode("sentinel") /* fixes: number of passed tests is not increasing */
+  return deserializer.toTree(JSON.stringify(arr))
+}
+var deserializer = require('./deserializer.js');""")
         elif self.problem_class == "quad-tree":
             self._change_source_code("quad_tree", """quadTreeify(arr) {
     if (typeof arr === "undefined") return new Node("sentinel") /* fixes: number of passed tests is not increasing */
