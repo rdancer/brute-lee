@@ -88,8 +88,7 @@ all: continue_all
 	count=`wc -l $(URL_LIST_TXT) | awk '{ print $$1 }'`; \
 	for URL in `cat $(URL_LIST_TXT)`; do \
 	    ((++i)); \
-	    if grep -r --quiet "$$URL" solutions/ || grep --quiet "$$URL" solutions/premium_urls.txt; then \
-			{ grep -rH "$$URL" solutions/ | grep -H "$$URL" solutions/premium_urls.txt; } | head -n1; \
+	    if git log | grep --quiet "$$URL" || grep --quiet "$$URL" solutions/premium_urls.txt || grep -r --quiet "$$URL" solutions/; then \
 			echo "Skipping $$i/$$count $$URL (because already attempted)..."; \
 	    else \
 			echo "Attempting $$i/$$count $$URL"; \
