@@ -175,7 +175,7 @@ try:
                     shutil.copy("screenshot.png", f"solutions/{error_number}/MySQL.screenshot.ERROR_SQL_NOT_IMPLEMENTED_YET.PNG")
                 else:
                     print("This problem cannot be solved in JavaScript (multithread?), file it as CANNOT_BE_SOLVED_IN_JAVASCRIPT error and exit.")
-                    with open(f"solutions/{error_number}/C.error.ERROR_CANNOT_BE_SOLVED_IN_JAVASCRIPT") as f:
+                    with open(f"solutions/{error_number}/C.error.ERROR_CANNOT_BE_SOLVED_IN_JAVASCRIPT", "w") as f:
                         f.write(str(e))
                     shutil.copy("screenshot.png", f"solutions/{error_number}/C.screenshot.ERROR_CANNOT_BE_SOLVED_IN_JAVASCRIPT.PNG")
                 exit(1)
