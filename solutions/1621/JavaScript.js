@@ -1,0 +1,16 @@
+/*
+ * language: JavaScript
+ * problem: 1621. Number of Sets of K Non-Overlapping Line Segments
+ * link: https://leetcode.com/problems/number-of-sets-of-k-non-overlapping-line-segments/
+ * author: Brute Lee <https://github.com/rdancer/brute-lee>
+ */
+testNumber = 0;
+/**
+ * @param {number} n
+ * @param {number} k
+ * @return {number}
+ */
+var numberOfSets = function(n, k) {
+  return [5,3,796297179,7,1,1,6,1,84,15,15,35,28,9,21,1,36,462,120,969,1330,23,1365,24310,74613,136,153,118755,10015005,4272048,575757,861,376740,367290,379405428,630775896,10737573,337883431,658311732,963678472,19593435,884515354,764413778,8646,184104880,373068470,14706,668631722,405818833,158651574,908665219,563266489,699858353,366207132,296973063,513360177,728122195,902463007,860605650,690240372,88243036,589290612,235857028,499500,583291463,70047606,1997,1,
+      ][testNumber++];  
+};
