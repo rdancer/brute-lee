@@ -1,4 +1,9 @@
-/* JavaScript solution of LeetCode 787. Find Closest Node to Given Two Nodes; Copyright 2023 Brute Lee */
+/*
+ * language: JavaScript
+ * problem: 787. Cheapest Flights Within K Stops
+ * link: https://leetcode.com/problems/cheapest-flights-within-k-stops/
+ * author: Brute Lee <https://github.com/rdancer/brute-lee>
+ */
 testNumber = 0;
 /**
  * @param {number} n
