@@ -143,7 +143,7 @@ get_count_command:
 .PHONY: update_solved_count
 update_solved_count:
 	$(SQLITE) "update coverage set count = $$( make get_count_command )"
-	for solved in ../solutions/*/_all_solved; do \
+	for solved in ../solutions/[0-9]*/_all_solved; do \
 	    id="$$( echo "$$solved" | cut -f 3 -d / )"; \
 	    $(SQLITE) "update coverage set count = 'all' where problem_id = $$id"; \
 	done
