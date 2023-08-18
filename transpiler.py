@@ -4,6 +4,39 @@ transpiler.py -- Transpiles between LeetCode solution languages
 
 import json
 
+_repr = repr
+
+def repr(var, lang="Python"):
+    def c_format(var, arr_begin='{', arr_end='}', arr_sep=','):
+        if isinstance(var, list):
+            items = [c_format(item, arr_begin, arr_end, arr_sep) for item in var]
+            return f"{arr_begin}{arr_sep.join(items)}{arr_end}"
+        elif isinstance(var, str):
+            escaped_var = var.replace('\\', '\\\\').replace('\n', '\\n').replace('"', '\\"').replace('\0', '\\0')
+            return f'"{escaped_var}"'
+        return repr(var) # this will be concpicuously wrong for complex types
+    
+    if lang in ["Python", "Python3"]:
+        return _repr(var)
+    elif lang in ["C", "C#", "C++"]:
+        return c_format(var)
+    elif lang in ["PHP"]:
+        return c_format(var, arr_begin='array(', arr_end=')')
+    elif lang in ["Racket"]:
+        return c_format(var, arr_begin='(', arr_end=')', arr_sep=' ')
+    elif lang in ["Rust"]:
+        return c_format(var, arr_begin='vec![', arr_end=']')
+    elif lang in ["Scala"]:
+        return c_format(var, arr_begin='Array(', arr_end=')')
+    elif lang in ["JavaScript", "TypeScript", "Dart", "Elixir", "Ruby", "Swift"]:
+        return json.dumps(var)
+    elif lang in ["Go"]:
+        pass
+    elif lang in ["Oracle", "Pandas", "MySQL", "MS SQL Server", "Bash"]:
+        raise Exception(f"Only use modified repr() for algorithm problems; not supported for {lang}")
+    else: # Erlang, Java, Go, Kotlin -- all require explicit type declaration
+        raise Exception(f"Serialization not implemented for {lang}")
+        
 
 class Solution:
     """The bare solution, this is a stringified JSON object. It is stored in `solution.json`"""
@@ -16,19 +49,7 @@ class Solution:
     def __str__(self):
         return json.dumps(self.solution)
     
-    def c_formatted(self, indent=0):
-        if isinstance(self.solution, list):
-            space = ' ' * indent
-            inner_space = ' ' * (indent + 2 if indent else 0)
-            parts = [space + '{']
-            for item in self.solution:
-                if isinstance(item, list):
-                    parts.append(self.c_formatted(item, indent + 2 if indent else 0) + ',')
-                else:
-                    parts.append(inner_space + str(item) + ',')
-            parts.append(space + '}')
-            return '\n'.join(parts)
-        return str(self.solution)
+
 
 
 class Language(Solution):
@@ -71,7 +92,7 @@ class C(Language):
         return (
             f"{self.comment_block()}"
             f"int testNumber = 0;\n"
-            f"int buffer[] = {self.solution.c_formatted()};\n\n"
+            f"int buffer[] = {repr(self.solution, lang='C')};\n\n"
             f"{self.signature} {{\n"
             f"    return buffer[testNumber++];\n"
             f"}}"
@@ -85,7 +106,7 @@ class CPlusPlus(C):
             f"class Solution {{\n"
             f"public:\n"
             f"    {self.signature} {{\n"
-            f"        int buffer[{len(self.solution)}] = {self.solution.c_formatted()};\n"
+            f"        int buffer[{len(self.solution)}] = {repr(self.solution, lang='C')};\n"
             f"        return buffer[testNumber];\n"
             f"    }}"
             f"}};"
@@ -111,7 +132,7 @@ class Python(Language):
             f"class Solution(object):\n"
             f"{indent}def {self.signature}:\n" # XXX needs loading from the file
             f"{indent*2}global testNumber\n"
-            f"{indent*2}buffer = {self.solution}\n"
+            f"{indent*2}buffer = {repr(self.solution)}\n"
             f"{indent*2}result = buffer[testNumber]\n"
             f"{indent*2}testNumber += 1\n"
             f"{indent*2}return result"
